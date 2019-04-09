@@ -1,0 +1,6 @@
+/data
+*.docx
+*.pdf
+!1808.09381.pdf
+*.zip
+*.rar
