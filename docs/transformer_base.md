@@ -29,7 +29,7 @@ Seq2seq 模型解决的主要问题是如何把一个变长的输入$x$映射到
 
 对于上图所示的模型，总结如下：
 
-+ 使用$h$表示Encoder的隐含状态，$s$表示Encoder 的隐含状态
++ 使用$h$表示Encoder的隐含状态，$s​$表示Encoder 的隐含状态
 
 + Encoder将输入$X = (x_0, x_1, ...,x_{T_x})$,通过一个双向LSTM得到两组隐含状态向量$h^{\leftarrow}, h^{\rightarrow}$.然后连接起来得到最终的$H=(h_1,h_2, ...,h_{T_x})$.
 
@@ -53,9 +53,9 @@ Seq2seq 模型解决的主要问题是如何把一个变长的输入$x$映射到
 
 ### 2.3 Self-Attention
 
-   Self Attention 与传统的Attention机制非常的不同：传统的Attention是基于source端和target端的隐变量（hidden state）计算Attention的，得到的结果是源端的每个词与目标端每个词之间的依赖关系。
+   Self Attention 与传统的Attention机制非常的不同：传统的Attention是基于source端和target端的隐含状态（hidden state）计算Attention的，得到的结果是源端的每个词与目标端每个词之间的依赖关系。
 
-​    但Self Attention不同，它分别在source端和target端进行，仅与source input或者target input自身相关;捕捉source端或target端自身的词与词之间的依赖关系；然后再把source端的得到的self Attention加入到target端得到的Attention中，捕捉source端和target端词与词之间的依赖关系。因此，self Attention Attention比传统的Attention mechanism效果要好，主要原因之一是，传统的Attention机制忽略了源端或目标端句子中词与词之间的依赖关系，相对比，self Attention可以不仅可以得到源端与目标端词与词之间的依赖关系，同时还可以有效获取源端或目标端自身词与词之间的依赖关系:
+​    但Self Attention不同，它分别在source端和target端进行，仅与source input或者target input自身相关;捕捉source端或target端自身的词与词之间的依赖关系；然后再把source端的得到的self Attention加入到target端得到的Attention中。因此，self Attention Attention比传统的Attention mechanism效果要好，主要原因之一是，传统的Attention机制忽略了源端或目标端句子中词与词之间的依赖关系，相对比，self Attention可以不仅可以得到源端与目标端词与词之间的依赖关系，同时还可以有效获取源端或目标端自身词与词之间的依赖关系:
 
 ![self](/home/inno/Pictures/190413-att.png)
 
@@ -70,7 +70,7 @@ Trandformer 将传统模型的Encode，Decoder都换为了多个attention。基�
 ![](https://pic1.zhimg.com/80/v2-26f3e9cd3679956dab33486c83dd0088_hd.jpg)
 
 1. 左右分别是Encoder和Decoder
-2. Encoder和Decoder的底部是embedding；而embedding又分为两部分：**input embedding**和**positional embedding**；其中**input embedding就是seq2seq中的embedding。**进行positional embedding，是由于transformer中只有attention；而对于attention机制，任意一对(query, key)的计算都是完全一样的，不像CNN和RNN，有一个位置或者时序的差异：CNN框住一块区域，随着卷积核移动，边缘的少量点会跟着有序变化；RNN更明显了，不同时序的 $h_t$ 和 $s_t$ 不同，而且是随着输入顺序不同（正序，倒序）而不同。因此为了体现出时序或者在序列中的位置差异，要对input加入一定的位置信息，即positional embedding。
+2. Encoder和Decoder的底部是embedding；而embedding又分为两部分：**input embedding**和**positional embedding**；其中**input embedding就是seq2seq中的embedding。**另一部分是positional embedding，添加该操作是由于transformer中只有attention；而对于attention机制，任意一对(query, key)的计算都是完全一样的，不像CNN和RNN，有一个位置或者时序的差异：CNN框住一块区域，随着卷积核移动，边缘的少量点会跟着有序变化；RNN更明显了，不同时序的 $h_t$ 和 $s_t$ 不同，而且是随着输入顺序不同（正序，倒序）而不同。因此为了体现出时序或者在序列中的位置差异，要对input加入一定的位置信息，即positional embedding。
 3. Encoder 和 Decoder 分别是由`N=6`个相同的层叠加得到的。
 4. 对于每一层，Encoder和Decoder的中部分别是两个block，分别输入一个序列、输出一个序列；Encoder的每个block里有两个子层，分别是MultiHead Attention和FeedForward Network; Decoder 的block里有三个子层，分别是两个MultiHead Attention和一个FFN。这些子网后面都跟了一个add&norm，并且仿照ResNet添加了一个`residual connection` ,对于每一个子层的输出可以形式化表示为`LayerNorm(x + SubLayer(x))` 也就是子层处理过后的结果加上输入在做正则化处理。
 5. Decoder 的中间的　MultiHead Attention 接受Encoder的输出以及前一个Masked MultiHead Attention 的输出作为输入；
@@ -89,6 +89,8 @@ Trandformer 将传统模型的Encode，Decoder都换为了多个attention。基�
 
 基本的前向反馈网络，使用全连接层即可实现。或者使用[1, 1]的卷积实现。使用ReLU作为激活函数。
 
+![ffn](/home/inno/Pictures/190413-ffn.png)
+
 ### 3.4 Positional Embedding
 
 由于网络中没有使用CNN，RNN，为了使用序列的位置信息，必须添加一些额外的信息确定一个token在序列中的相对或者绝对位置。文中使用的位置编码公式如下：
@@ -96,3 +98,16 @@ Trandformer 将传统模型的Encode，Decoder都换为了多个attention。基�
 
 其中的$pos$是位置，$i$为维度。每一个维度的位置编码为一个正弦曲线，曲线的波长组成了范围在[2$\pi,10000*2\pi$]一个几何级数.使用这个函数，更容易通过相对位置进行学习，因为对于一个确定的偏差$k$,$PE_{pos+k}$可以使用$PE_{pos}$的线性方程表示。
 
+## 4. Reference
+
+Bahadanau attention:<https://arxiv.org/pdf/1409.0473.pdf>
+
+Attention Is All You Need:<https://arxiv.org/pdf/1706.03762.pdf>
+
+Understanding Back-Translation at Scale:<https://arxiv.org/pdf/1808.09381.pdf>
+
+<https://zhuanlan.zhihu.com/p/38485843>
+
+<https://juejin.im/entry/5a1f9e036fb9a0450671663c>
+
+<https://medium.com/@adityathiruvengadam/transformer-architecture-attention-is-all-you-need-aeccd9f50d09>
