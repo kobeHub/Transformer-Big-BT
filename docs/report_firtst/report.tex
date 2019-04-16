@@ -1,28 +1,158 @@
-\documentclass[utf-8]{article}
-\usepackage{CJK}
-\usepackage{indentfirst}
-\setlength{\parindent}{2em}
-
-\renewcommand{/contentsname}{目录}
-\renewcommand{/listfigurename}{插图目录}
-\renewcommand{/listtablename}{表格目录}
-\renewcommand{/refname}{参考文献}
-\renewcommand{/abstractname}{摘要}
-\renewcommand{/indexname}{索引}
-\renewcommand{/tablename}{表}
-\renewcommand{/figurename}{图}
-
+\documentclass[UTF8,a4paper,10pt]{ctexart}
+\usepackage[left=2.50cm, right=2.50cm, top=2.50cm, bottom=2.50cm]{geometry} %页边距
+\CTEXsetup[format={\Large\bfseries}]{section} %设置章标题居左
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%
+% -- text font --
+% compile using Xelatex
+%%%%%%%%%%%%%%%%%%%%%%%
+% -- 中文字体 --
+%\setmainfont{Microsoft YaHei}  % 微软雅黑
+%\setmainfont{YouYuan}  % 幼圆    
+%\setmainfont{NSimSun}  % 新宋体
+%\setmainfont{KaiTi}    % 楷体
+%\setmainfont{SimSun}   % 宋体
+%\setmainfont{SimHei}   % 黑体
+% -- 英文字体 --
+%\usepackage{times}
+%\usepackage{mathpazo}
+%\usepackage{fourier}
+%\usepackage{charter}
+\usepackage{helvet}
+ 
+ 
+\usepackage{amsmath, amsfonts, amssymb} % math equations, symbols
+\usepackage[english]{babel}
+\usepackage{color}      % color content
+\usepackage{graphicx}   % import figures
+\usepackage{url}        % hyperlinks
+\usepackage{bm}         % bold type for equations
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{epstopdf}
+\usepackage{epsfig}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\renewcommand{\algorithmicrequire}{ \textbf{Input:}}     % use Input in the format of Algorithm  
+\renewcommand{\algorithmicensure}{ \textbf{Initialize:}} % use Initialize in the format of Algorithm  
+\renewcommand{\algorithmicreturn}{ \textbf{Output:}}     % use Output in the format of Algorithm  
+ 
+ 
+\usepackage{fancyhdr} %设置页眉、页脚
+%\pagestyle{fancy}
+\lhead{}
+\chead{}
+%\rhead{\includegraphics[width=1.2cm]{fig/ZJU_BLUE.eps}}
+\lfoot{}
+\cfoot{}
+\rfoot{}
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%
+%  设置水印
+%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{draftwatermark}         % 所有页加水印
+%\usepackage[firstpage]{draftwatermark} % 只有第一页加水印
+% \SetWatermarkText{Water-Mark}           % 设置水印内容
+% \SetWatermarkText{\includegraphics{fig/ZJDX-WaterMark.eps}}         % 设置水印logo
+% \SetWatermarkLightness{0.9}             % 设置水印透明度 0-1
+% \SetWatermarkScale{1}                   % 设置水印大小 0-1    
+ 
+\usepackage{hyperref} %bookmarks
+\hypersetup{colorlinks, bookmarks, unicode} %unicode
+ 
+ 
+ 
+\title{\textbf{Simmel的中文小论文}}
+\author{ Simmel \thanks{学号：xx2017xxxx} }
+\date{\today}
+ 
 \begin{document}
-
-% 宋体
-\begin{CJK}{UTF8}{gbsn}
-只是一个测试  
-\end{CJK}
-
-% 楷体
-\begin{CJK}{UTF8}{gkai}
-还是可以的
-\end{CJK}
-\end{document}
+    \maketitle
+ 
+ 
+\begin{abstract}
+这是一篇中文小论文。这个部分用来写摘要。摘要的章标题默认是英文，还没找到改成中文的方法:(
+\end{abstract}
+ 
+ 
+\section*{第一章}
+这里是第一章的内容。
+ 
+ 
+\section{第二章}
+这里是第二章的内容
+ 
+ 
+\section{以下为一些工具}
+    \begin{align}
+		& ABCDEFGHIJKLMNOPQRSTUVWXYZ \label{eq:alphabet} \\
+		& abcdefghijklmnopqrstuvwxyz \\
+	& \alpha \beta \gamma \delta \epsilon \varepsilon \zeta \eta \theta \lambda \mu \nu \xi \pi \rho \sigma \tau \upsilon \phi \varphi \chi \psi \omega  
+	\end{align}
+    \begin{align}
+	 \begin{bmatrix}
+		1 & 2 \\
+		3 & 4 \\
+	\end{bmatrix}
+	 \begin{pmatrix}
+	1 & 2 \\
+	3 & 4 \\
+	\end{pmatrix}
+	 \begin{matrix}
+	1 & 2 \\
+	3 & 4 \\
+	\end{matrix}
+	\end{align}
+ 
+    \begin{equation}
+	A_{t+1} = \arg\min_A \ \mathcal{L}(A,E_t,\Delta\tau_t,W_t,b_t), \nonumber
+	\end{equation}
+ 
+    \begin{equation}
+	\begin{aligned} \label{eq:rasl}
+	\min_{A,E,\Delta \tau} \quad & \sum_{i=1}^{N}||A_i||_* + \lambda ||E_i||_1  \\
+	\mathrm{s.t.} \quad & D_i \circ \tau_i + \sum_{k=1}^{n_i} J_{ik} \Delta \tau_i \epsilon_k \epsilon_k^T = A_i + E_i, \\
+	& i = 1,2,\cdots,N. 
+	\end{aligned}
+	\end{equation}
+ 
+    \begin{table}[htbp]
+		\caption{Title of table} \label{tab:table}
+		\centering
+		\addtolength{\tabcolsep}{-0mm} % 控制列间距
+		\begin{tabular}{ccccc}
+			\toprule[0.75pt]	% package booktabs
+			\multicolumn{4}{c}{table head} \\
+			\midrule[0.5pt]	% package booktabs
+			\multirow{4}{*}{text} & 1 & 2 & 3 & 4 \\  % package multirow
+			& 5 & 6 & 7 & 8 \\
+			\cmidrule[0.5pt]{2-4}	% package booktabs
+			& 9 & 10 & 11 & 12 \\
+			& 13 & 14 & 15 & 16 \\
+			\bottomrule[0.75pt]	% package booktabs
+		\end{tabular}
+	\end{table}
+    引用： Eq. \eqref{eq:alphabet}, Fig. \ref{figure:zju1},  \\
+    
+ 
+    \begin{algorithm}
+		\caption{Title of the Algorithm}
+		\label{algo:ref}
+		\begin{algorithmic}[1]
+			\REQUIRE some words.  % this command shows "Input"
+			\ENSURE ~\\           % this command shows "Initialized"
+			some text goes here ... \\
+			\WHILE {\emph{not converged}}
+			\STATE ... \\  % line number at left side
+			\ENDWHILE
+			\RETURN this is the lat part.  % this command shows "Output"
+		\end{algorithmic}
+	\end{algorithm}
+ 
+ 
+\bibliographystyle{plain}
+\bibliography{sample}
 
 \end{document}
