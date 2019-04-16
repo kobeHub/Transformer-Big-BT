@@ -11,9 +11,13 @@ import sys
 
 import tensorflow as tf
 import numpy as np
+import six
+
 
 from typing import List, Tuple, Iterator
 
+
+#################### super constant ###########################
 # Define the reserved tokens
 PAD = '<PAD>'
 PAD_ID = 0
@@ -23,10 +27,25 @@ RESERVED_TOKENS = [PAD, EOS]
 
 # All characters contains all letter ans number
 _ALPHANUMERIC_CHAR_SET = set(
-    six.unichr(i) for i in xrange(sys.maxunicode)
+    six.unichr(i) for i in range(sys.maxunicode)
     if (unicodedata.category(six.unichr(i)).startswith("L") or
         unicodedata.category(six.unichr(i)).startswith("N")))
 
+
+# set of char used in the _escape_token() function
+_ESCAPE_CHARS = set(u'\\_u;0123456789')
+_UNESCAPE_REGEX = re.comlile(r'\\u|\\\\|\\([0-9]+);')
+
+# min_count is the minimum of the token should appear before it can
+# be added into vocab. The value is found via binary search to obtiain
+# target vocabulary size
+_MIN_MAX_COUNT = 1   # min value to use when bianry search for min_count
+_MAX_MIN_COUNT = 100 # max value to use when binary search for min_count
+
+
+
+
+######################### Define Subtokenizer class #################################
 
 class Subtokenizer:
     """Encodes and decodes strings to/from integer IDs"""
@@ -86,8 +105,7 @@ class Subtokenizer:
         assert isinstance(subtokens, list) and isinstance(subtokens[0], int), (
         "Subtokens argument passed into decode() must be a list of integers.")
 
-        return _unicode_to_native(
-                _join_tokens_to_string(self._subtoken_ids_to_tokens(subtokens)))
+        return _join_tokens_to_string(self._subtoken_ids_to_tokens(subtokens))
 
     def _token_to_subtoken_ids(self, token: str) -> List[int]:
         """Encode a single token into a list of subtoken ids"""
@@ -96,6 +114,51 @@ class Subtokenizer:
         if token == hash_k:
             return cache_v
 
-        res = _split_string_to_tokens()
+        res = _split_string_to_tokens(
+                _escape_token(token, self.alphabet), self.subtoken_to_id_dict,
+                self.max_subtoken_length)
+        res = [self.subtoken_to_ids_dict[subtoken_id] for subtoken_id in res]
+        return res
 
-        
+    def _subtoken_ids_to_tokens(self, subtokens: List[int]) -> List[str]:
+        """Convert a list of subtoken ids into a list of string tokens"""
+        escaped_tokens = ''.join([
+            self.subtoken_list[s] for s in subtokens
+            if s < len(self.subtoken_list)])
+        escaped_tokens = escaped_tokens.split('_')
+
+        res = []
+        for token in escaped_tokens:
+            if token:
+                res.append(_unescape_token(token))
+        return res
+
+
+############################# Functions for utils ##################################
+
+def _save_vocab(vocab_file, subtoken_list) -> None:
+    """Save subtokens into file"""
+    with tf.gfile.Open(vocab_file, 'w') as f:
+        for token in subtoken_list:
+            f.write('{}\n'.format(token)
+
+
+
+def _load_vocab_file(vocab_file, reserved_tokens=RESERVED_TOKENS) -> List[str]:
+    """Load subtokens and ensures the reserved tokens are at top"""
+    subtoken_list = []
+    with tf.gfile.Open(vocab_file, mode='r') as f:
+        for line in f:
+            subtoken = line.strip()
+            subtoken = subtoken[1:-1]
+            if subtoken in reserved_tokens:
+                continue
+            subtoken_list.append(subtoken)
+
+    return reserved_tokens + subtoken_list
+
+
+
+def _
+
+
