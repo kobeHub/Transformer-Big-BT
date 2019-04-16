@@ -4,3 +4,6 @@
 !1808.09381.pdf
 *.zip
 *.rar
+*.log
+*.aux
+*.out
