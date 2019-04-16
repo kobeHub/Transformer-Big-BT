@@ -1,0 +1,5 @@
+/usr/share/fonts/truetype/arphic-bkai00mp/bkai00mp.ttf: AR PL KaitiM Big5,文鼎ＰＬ中楷:style=Regular
+/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf: Droid Sans Fallback:style=Regular
+/usr/share/fonts/truetype/arphic-gkai00mp/gkai00mp.ttf: AR PL KaitiM GB,文鼎ＰＬ简中楷:style=Regular
+/usr/share/fonts/truetype/arphic-gbsn00lp/gbsn00lp.ttf: AR PL SungtiL GB,文鼎ＰＬ简报宋:style=Regular
+/usr/share/fonts/truetype/arphic-bsmi00lp/bsmi00lp.ttf: AR PL Mingti2L Big5,文鼎ＰＬ細上海宋:style=Regular

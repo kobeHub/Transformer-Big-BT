@@ -12,7 +12,7 @@
 %\setmainfont{YouYuan}  % 幼圆    
 %\setmainfont{NSimSun}  % 新宋体
 %\setmainfont{KaiTi}    % 楷体
-%\setmainfont{SimSun}   % 宋体
+%\setCJKmainfont{AR PL SungtiL GB}   % 宋体
 %\setmainfont{SimHei}   % 黑体
 % -- 英文字体 --
 %\usepackage{times}
@@ -21,7 +21,7 @@
 %\usepackage{charter}
 \usepackage{helvet}
  
- 
+%\usepackage[colorlinks,linkcolor=blue]{hyperref} 
 \usepackage{amsmath, amsfonts, amssymb} % math equations, symbols
 \usepackage[english]{babel}
 \usepackage{color}      % color content
@@ -48,7 +48,12 @@
 \cfoot{}
 \rfoot{}
  
- 
+%%%%%%%%%%%%%%%%%%%%%%
+% 中文映射
+%%%%%%%%%%%%%%%%%%%%%
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%
 %  设置水印
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -64,21 +69,35 @@
  
  
  
-\title{\textbf{Simmel的中文小论文}}
-\author{ Simmel \thanks{学号：xx2017xxxx} }
+\title{\textbf{机器翻译开题报告}}
+\author{贾栋\; 王坤}
 \date{\today}
  
 \begin{document}
     \maketitle
+
+
+\begingroup % start a TeX group
+\color{blue}% or whatever color you wish to use
+\renewcommand{\contentsname}{目录}
+\tableofcontents
+%\newpage
+\endgroup   % end of TeX group
  
- 
-\begin{abstract}
-这是一篇中文小论文。这个部分用来写摘要。摘要的章标题默认是英文，还没找到改成中文的方法:(
-\end{abstract}
- 
- 
-\section*{第一章}
-这里是第一章的内容。
+
+%\renewcommand{\abstractname}{抽象}
+%\begin{abstract}
+%这是一篇中文小论文。这个部分用来写摘要。摘要的章标题默认是英文，还没找到改成中文的方法:(
+%\end{abstract} 
+
+\section{实验目标}
+
+
+%\subsection{实验目标}
+此次实验的目标是基于现有研究成果，实现一个中英互译的机器翻译引擎，
+可以提供中英互译的基本API。利用实验提供的`UMCORPUS` 数据集以及其他的一些开源数据集（详情见下文）
+进行训练。根据 \href{http://nlpprogress.com/english/machine_translation.html}{nlpprocess} 的记录，
+目前在机器翻译领域（基于WMT2014数据集）表现最为优秀的模型是
  
  
 \section{第二章}
@@ -102,7 +121,7 @@
 	\end{pmatrix}
 	 \begin{matrix}
 	1 & 2 \\
-	3 & 4 \\
+p	3 & 4 \\
 	\end{matrix}
 	\end{align}
  
