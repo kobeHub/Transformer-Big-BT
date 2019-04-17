@@ -1,0 +1,141 @@
+\documentclass[UTF8,a4paper,10pt]{ctexart}
+\usepackage[left=2.50cm, right=2.50cm, top=2.50cm, bottom=2.50cm]{geometry} %页边距
+\CTEXsetup[format={\Large\bfseries}]{section} %设置章标题居左
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%
+% -- text font --
+% compile using Xelatex
+%%%%%%%%%%%%%%%%%%%%%%%
+% -- 中文字体 --
+%\setmainfont{Microsoft YaHei}  % 微软雅黑
+%\setmainfont{YouYuan}  % 幼圆    
+%\setmainfont{NSimSun}  % 新宋体
+%\setmainfont{KaiTi}    % 楷体
+%\setCJKmainfont{AR PL SungtiL GB}   % 宋体
+%\setmainfont{SimHei}   % 黑体
+% -- 英文字体 --
+%\usepackage{times}
+%\usepackage{mathpazo}
+%\usepackage{fourier}
+%\usepackage{charter}
+\usepackage{helvet}
+ 
+\usepackage[colorlinks,linkcolor=black, anchorcolor=green, citecolor=black]{hyperref} 
+\usepackage{amsmath, amsfonts, amssymb} % math equations, symbols
+\usepackage[english]{babel}
+\usepackage{color}      % color content
+\usepackage{graphicx}   % import figures
+%\usepackage[colorlinks, linkcolor=blue]{url}        % hyperlinks
+\usepackage{bm}         % bold type for equations
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{epstopdf}
+\usepackage{epsfig}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{tcolorbox}
+\usepackage{colortbl}
+%\usepackage{float}
+\renewcommand{\algorithmicrequire}{ \textbf{Input:}}     % use Input in the format of Algorithm  
+\renewcommand{\algorithmicensure}{ \textbf{Initialize:}} % use Initialize in the format of Algorithm  
+\renewcommand{\algorithmicreturn}{ \textbf{Output:}}     % use Output in the format of Algorithm   
+ 
+
+
+
+\usepackage{fancyhdr} %设置页眉、页脚
+%\pagestyle{fancy}
+\lhead{}
+\chead{}
+%\rhead{\includegraphics[width=1.2cm]{fig/ZJU_BLUE.eps}}
+\lfoot{}
+\cfoot{}
+\rfoot{}
+ 
+%%%%%%%%%%%%%%%%%%%%%%
+% 中文映射
+%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%  设置水印
+%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{draftwatermark}         % 所有页加水印
+%\usepackage[firstpage]{draftwatermark} % 只有第一页加水印
+% \SetWatermarkText{Water-Mark}           % 设置水印内容
+% \SetWatermarkText{\includegraphics{fig/ZJDX-WaterMark.eps}}         % 设置水印logo
+% \SetWatermarkLightness{0.9}             % 设置水印透明度 0-1
+% \SetWatermarkScale{1}                   % 设置水印大小 0-1    
+ 
+\usepackage{hyperref} %bookmarks
+\hypersetup{colorlinks, bookmarks, unicode} %unicode
+ 
+ 
+ 
+\title{\textbf{机器翻译开题报告}}
+\author{贾栋\; 王坤}
+\date{\today}
+ 
+\begin{document}
+    \maketitle
+
+
+\begingroup % start a TeX group
+\color{black}% or whatever color you wish to use
+\renewcommand{\contentsname}{目录}
+\tableofcontents
+\newpage
+\endgroup   % end of TeX group
+ 
+
+%\renewcommand{\abstractname}{抽象}
+%\begin{abstract}
+%这是一篇中文小论文。这个部分用来写摘要。摘要的章标题默认是英文，还没找到改成中文的方法:(
+%\end{abstract} 
+
+\section{实验目标}
+
+
+%\subsection{实验目标}
+此次实验的目标是基于现有研究成果，实现一个中英互译的机器翻译引擎，
+可以提供中英互译的基本API。利用实验提供的UMCORPUS 数据集以及其他的一些开源数据集（详情见下文）
+进行训练。根据 \href{http://nlpprogress.com/english/machine_translation.html}{\color{blue}nlpprocess} 的记录，
+目前在机器翻译领域（基于WMT2014数据集）表现最为优秀的模型是 \href{https://arxiv.org/pdf/1808.09381.pdf}{\color{blue}Transformer Big + BT (Edunov et al., 2018)} (英德互译)，
+\href{https://www.deepl.com/press.html}{\color{blue}DeepL}(英法互译)，以及表现同样较为优秀的 \href{https://arxiv.org/abs/1901.10430.pdf}{\color{blue}DynamicConv (Wu et al, 2019)}
+等。其中DeepL是商业软件，
+  其他两个都有论文发表。实验的基本思路是借鉴这些优秀论文的思想，比较具体的可行性，
+  选取其中的一个进行实现。
+
+从机器翻译的基本方法出发，本次实验选取了能够代表三大方法的开源 ML 引擎进行对比。包含但不限于以下模型：
+\begin{itemize}
+
+\item[$$$\bullet$] \href{http://www.statmt.org/moses/?n=Moses.Overview}{\color{blue}\underline{Mose}}  基于统计的 
+
+\item[$\bullet$] \href{https://github.com/apertium}{\color{blue}\underline{Apertium}}                基于规则的
+
+\item[$\bullet$] \href{http://thumt.thunlp.org/}{\color{blue}\underline{THUMT}}                     基于神经网络的
+\end{itemize}
+   
+  最终选用\href{https://arxiv.org/pdf/1808.09381.pdf}{\color{blue}Transformer Big + BT (Edunov et al., 2018)} 作为最终实现目标。
+  首先需要建立 Transformer 的基本模型，然后此基础上再进行改进。
+
+
+\section{实验思路}
+
+   从 MT 基于规则的方法，到依赖于大量数据的基于统计的方法，再到基于深度学习的 seq2seq learning。
+   机器翻译领域不断涌现着新的思路和方法，并且表现出更优异的性能。从seq2seq的思路出发，机器翻译模型
+   通过将一种语言的输入序列转化为另一种语言的输出序列，从而达到翻译的目的。基本的模型由两个 RNN 组成，
+   一个encoder，一个decoder。
+   
+
+   由于RNN具有保存先前状态的能力，所以可以学习序列化数据的规律。之后在seq2seq的方法的基础之上，提出了attention机制，
+   使得模型性能具有了较大提升。之后又提出的 \href{https://arxiv.org/pdf/1808.09381.pdf}{\color{blue}Transformer Big + BT (Edunov et al., 2018)} 
+   不再使用RNN作为encoder$以及$decoder，而是全部使用attention。建立了直接的长距离依赖。
+
+
+   所以现有的基本思路是建立 Transformer 的模型，通过研读有关论文，在此基础上使用 Back-Translation 的方法。
+   最终目标是最大近似的再现\href{https://arxiv.org/pdf/1808.09381.pdf}{\color{blue}Transformer Big + BT}的模型。
+
+\end{document}
