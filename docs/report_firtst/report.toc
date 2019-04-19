@@ -1,14 +1,14 @@
 \babel@toc {english}{}
 \contentsline {section}{\numberline {1}实验目标}{2}{section.1}% 
 \contentsline {section}{\numberline {2}实验思路}{2}{section.2}% 
-\contentsline {section}{\numberline {3}Seq2seq 模型简介}{2}{section.3}% 
-\contentsline {subsection}{\numberline {3.1}背景}{2}{subsection.3.1}% 
+\contentsline {section}{\numberline {3}Seq2seq and Attention}{2}{section.3}% 
+\contentsline {subsection}{\numberline {3.1}Seq2seq 简介}{2}{subsection.3.1}% 
 \contentsline {subsection}{\numberline {3.2}Attention Mechanism }{3}{subsection.3.2}% 
 \contentsline {subsubsection}{\numberline {3.2.1}原理}{3}{subsubsection.3.2.1}% 
 \contentsline {subsection}{\numberline {3.3}结构总结}{4}{subsection.3.3}% 
 \contentsline {subsection}{\numberline {3.4}\textbf {Self Attention}}{4}{subsection.3.4}% 
 \contentsline {section}{\numberline {4}Transformer}{5}{section.4}% 
-\contentsline {subsection}{\numberline {4.1}架构}{5}{subsection.4.1}% 
+\contentsline {subsection}{\numberline {4.1}模型架构}{5}{subsection.4.1}% 
 \contentsline {subsection}{\numberline {4.2}MultiHead Attention}{6}{subsection.4.2}% 
 \contentsline {subsection}{\numberline {4.3}Feed-Forward Network (FFN)}{6}{subsection.4.3}% 
 \contentsline {subsection}{\numberline {4.4}Positional Embedding}{6}{subsection.4.4}% 

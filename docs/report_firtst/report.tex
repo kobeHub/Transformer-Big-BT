@@ -99,8 +99,8 @@
 
 
 %\subsection{实验目标}
-此次实验的目标是基于现有研究成果，实现一个中英互译的机器翻译引擎，
-可以提供中英互译的基本API。利用实验提供的UMCORPUS 数据集以及其他的一些开源数据集（详情见下文）
+此次实验的目标是基于现有研究成果，实现一个英译中的机器翻译引擎，
+可以提供英译中的基本API。利用实验提供的UMCORPUS 数据集以及其他的一些开源数据集（详情见下文）
 进行训练。根据 \href{http://nlpprogress.com/english/machine_translation.html}{\color{blue}nlpprocess} 的记录，
 目前在机器翻译领域（基于WMT2014数据集）表现最为优秀的模型是 \href{https://arxiv.org/pdf/1808.09381.pdf}{\color{blue}Transformer Big + BT (Edunov et al., 2018)} (英德互译)，
 \href{https://www.deepl.com/press.html}{\color{blue}DeepL}(英法互译)，以及表现同样较为优秀的 \href{https://arxiv.org/abs/1901.10430.pdf}{\color{blue}DynamicConv (Wu et al, 2019)}
@@ -108,7 +108,7 @@
   其他两个都有论文发表。实验的基本思路是借鉴这些优秀论文的思想，比较具体的可行性，
   选取其中的一个进行实现。
 
-从机器翻译的基本方法出发，本次实验选取了能够代表三大方法的开源 ML 引擎进行对比。包含但不限于以下模型：
+  从机器翻译的基本方法出发，本次实验选取了能够代表三大方法的开源 MT 引擎进行对比。包含但不限于以下模型：
 \begin{itemize}
 
 \item[$$$\bullet$] \href{http://www.statmt.org/moses/?n=Moses.Overview}{\color{blue}\underline{Mose}}  基于统计的 
@@ -119,7 +119,7 @@
 \end{itemize}
    
   最终选用\href{https://arxiv.org/pdf/1808.09381.pdf}{\color{blue}Transformer Big + BT (Edunov et al., 2018)} 作为最终实现目标。
-  首先需要建立 Transformer 的基本模型，然后此基础上再进行改进。
+  首先需要建立 Transformer 的基本模型，然后此基础上再进行改进。本次报告针对 Transformer 模型进行详细分析。
 
 
 \section{实验思路}
@@ -138,11 +138,11 @@
    所以现有的基本思路是建立 Transformer 的模型，通过研读有关论文，在此基础上使用 Back-Translation 的方法。
    最终目标是最大近似的再现\href{https://arxiv.org/pdf/1808.09381.pdf}{\color{blue}Transformer Big + BT}的模型。
 
-\section{Seq2seq 模型简介} 
-\subsection{背景}
+\section{Seq2seq and Attention} 
+\subsection{Seq2seq 简介}
 
    Seq2seq 模型是机器翻译，对话生成等任务中的经典模型，attention 机制为其提供了较大的性能改进。
-   基本的Seq2seq 模型使用的是复杂的RNN或者CNN作为encode，decoder，加上attention机制后为q模型赋予了较强的区分辨别能力。
+   基本的Seq2seq 模型使用的是复杂的RNN或者CNN作为encode，decoder，加上attention机制后为模型赋予了较强的区分辨别能力。
    而 Transformer 模型完全使用attention机制摒弃了RNN，CNN。建立了更为简单的模型，得到了优异的性能，
    更易并行化，训练时间更少。原始的 Transformer 模型在WMT2014 英德数据集上取得了28.4BLEU的性能。
 
@@ -156,8 +156,8 @@
     \centerline{\includegraphics[scale=0.3]{pics/190417-s1.jpg}}
     
 
-    其中Encoder把输入的$T$维向量编码为一个固定长度的隐向量c（或者成为上下文向量context），其作用有二：
-    初始化Decoder模型，作为背景向量指导序列中每一步$y_t$的产出。Decoder主要通过每一步的背景向量以及上一步
+    其中Encoder把输入的$T$维向量编码为一个固定长度的隐向量c（或者称为上下文向量context），其作用有二：
+    初始化Decoder模型，作为背景向量指导序列中每一步$y_t$的输出。Decoder通过每一步的背景向量以及上一步
     的状态$y_{t-1}$得到时刻t的输出$y_t$,直到序列结束（<EOS>）。
 
     但是基础的Seq2seq模型对于输出序列x缺乏区分度，所以加入的Attention机制，下图是\href{https://arxiv.org/abs/1409.0473}{\color{blue}Bahadanau attention}的示意图:
@@ -170,13 +170,13 @@
 
     \centerline{\includegraphics[scale=0.6]{pics/190417-s2.jpg}}
     
-    通过attention机制，将输入序列$X =(x_0, x_1, ...,x_T)$ 映射到一个隐层状态$H=(h_0, h_1, ...,h_T)$,再由Decoder将隐层 $H$,映射到输出序列$Y=  (y_0, y_1, ...,y_t)$.这里的精妙之处在于，输出序列Y的每一个元素都与隐层状态H相连，而H又与所有的输入状态存在联系，所以可以直接建立长距离的依赖，发掘更多语义上的关联，从而达到更好的翻译效果。
+    首先将输入序列$X =(x_0, x_1, ...,x_T)$ 映射到一个隐含层状态$H=(h_0, h_1, ...,h_T)$,再由Decoder将隐层 $H$,映射到输出序列$Y=  (y_0, y_1, ...,y_t)$.这里的精妙之处在于，通过 attention 机制,输出序列Y的每一个元素都与隐层状态H相连，而H又与所有的输入状态存在联系，所以可以直接建立长距离的依赖，发掘更多语义上的关联，从而达到更好的翻译效果。
 
     \subsection{结构总结}
     
       对于上图文所示的模型，总结如下：
       \begin{itemize}
-        \item  使用$h$表示Encoder的隐含状态，$s​$表示Encoder 的隐含状态
+        \item  使用$h$表示Encoder的隐含状态，$s​$表示Decoder 的隐含状态
          
         \item Encoder将输入$X = (x_0, x_1, ...,x_{T_x})$,通过一个双向LSTM得到两组隐含状态向量$h^{\leftarrow}, h^{\rightarrow}$.然后连接起来得到最终的$H=(h_1,h_2, ...,h_{T_x})$.
 
@@ -196,7 +196,7 @@
               \end{tcolorbox}
               以上步骤的线性映射以及v可以通过训练得到，这种方式称为\textbf{加性attention}。
 
-          \item 总结一下，attention就是算一个encoder output的加权和，叫做context；计算方法为，query和key计算相关程度，然后归一化得到alignment，即权重；然后用alignment和memory算加权和，得到的向量就是context。
+          \item 总结一下，attention就是计算一个encoder output的加权和，叫做context；计算方法为，query和key计算相关程度，然后归一化得到alignment，即权重；然后用alignment和memory算加权和，得到的向量就是context。
       \end{itemize}
 
     \subsection{\textbf{Self Attention}}
@@ -216,7 +216,7 @@ Transformer 模型即实现了self-attention.
 
 \section{Transformer}
 
-\subsection{架构}
+\subsection{模型架构}
 
 Trandformer 将传统模型的Encode，Decoder都换为了多个attention。基本示意图如下：
 
@@ -312,6 +312,8 @@ Trandformer 将传统模型的Encode，Decoder都换为了多个attention。基�
 王坤&201600301225 &数据的收集与整理；三大开源模型的源码分析，以及模型比对\\
 \hline
 \end{tabular}
+
+\textit{现有进度: 正在进行数据处理以及模型的搭建；其他待对比模型的源码分析也在进行中。}
 
 \section{Reference:}
 
