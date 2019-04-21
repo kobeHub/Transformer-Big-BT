@@ -8,8 +8,8 @@ import fire
 import sys
 sys.path.append('..')
 
-from code.preprocess.pre_data import basic_usage 
-
+ 
+from code.preprocess.tokenizer import split_zh_string_to_tokens
 
 def usage_test(name: str='') -> None:
     basic_usage(name)
@@ -20,6 +20,9 @@ def pre_data() -> None:
 def train() -> None:
     print('Begin to train the model...')
 
+def tokiner_test(string: str) -> None:
+    t = split_zh_string_to_tokens(string)
+    print(t)
 
 
 if __name__ == '__main__':
