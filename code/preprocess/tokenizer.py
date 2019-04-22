@@ -42,14 +42,6 @@ _UNDEFINED_UNICODE = u'\u3013'
 
 
 
-# min_count is the minimum of the token should appear before it can
-# be added into vocab. The value is found via binary search to obtiain
-# target vocabulary size
-_MIN_MAX_COUNT = 1   # min value to use when bianry search for min_count
-_MAX_MIN_COUNT = 100 # max value to use when binary search for min_count
-
-
-
 
 ######################### Define Subtokenizer class #################################
 
