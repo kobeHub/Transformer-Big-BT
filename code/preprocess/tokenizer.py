@@ -53,90 +53,68 @@ _MAX_MIN_COUNT = 100 # max value to use when binary search for min_count
 
 ######################### Define Subtokenizer class #################################
 
-class Subtokenizer:
+class Tokenizer:
     """Encodes and decodes strings to/from integer IDs"""
 
-    def __init__(self, vocab_file, reversed_tokens=RESERVED_TOKENS):
+    def __init__(self, vocab_file, reserved_tokens=RESERVED_TOKENS):
         """Create a vocab according to the given file"""
         tf.logging.info('Initializing Subtokenizer from file {}'.format(vocab_file))
-        # todo 
+        
+        # In order to use Chinese, token based on word level 
+        self.token_list = _load_vocab_file(vocab_file, reserved_tokens)
+        self.token_to_id_dict = _list_to_index_dict(self.token_list)
+        self.vocab_size = len(self.token_to_id_dict)
+
+        # todo: create cache to speed tokenization
+        
 
     @staticmethod
-    def vocab_from_files(vocab_file: str, files: List[str], target_vocab_size: int, 
-            threshold: int, min_count=None, file_limit=1e6, 
+    def vocab_from_files(vocab_file: str, files: List[str], 
             reserved_tokens=RESERVED_TOKENS):
         """Initializing subtoken vocabulary from files and save vocab in `vocab_file`
         
         Args:
             vocab_file: The file name to store the vocab
             files: List of files to generate vocab
-            target_vocab_size: generate vocab size
-            threshold: the threshold vocab can accept
-            min_count: The minimum time of a subtoken should appear before added into 
-                        vocabulary.
-            file_limit: The maximum bytes of the sample text.
             reserved_tokens: RESERVED_TOKENS 
         """
         if tf.gfile.Exists(vocab_file):
             tf.logging.info('Vocab file {} already exists!!'.format(vocab_file))
         else:
             tf.logging.info('Generating vocab from files...')
-            counts = _count_tokens(files, file_limit)
-            alphabet = _generate_alphabet_dict(counts)
-            subtoken_list = _generate_subtokens_with_target_vocab_size(
-                    counts, alphabet, target_vocab_size, threshold, min_count,
-                    reserved_tokens)
-            tf.logging.info('Created vocab with {} subtokens.'.format(
-                len(subtoken_list)))
-            _save_vocab(vocab_file, subtoken_list)
-        return Subtokenizer(vocab_file)
+            counts = _count_tokens(files)
+            token_list = list(counts.keys())
+            tf.logging.info('Created vocab with {} tokens.'.format(
+                len(token_list)))
+            _save_vocab(vocab_file, token_list)
+        return Tokenizer(vocab_file)
 
-    def encode(self, raw_strin: str, add_eos=False) -> List[int]:
-        """Encode string into list of int"""
+    def encode(self, raw_string: str, add_eos=False) -> List[int]:
+        """Encode string into a list of int"""
         res = []
-        # todo// tokens = _split_string_to_tokens()
+        tokens = _split_string_to_tokens()
         for token in tokens:
-            res.extend(self._token_to_subtoken_ids(token))
+            res.extend(self.token_to_id_dict(token))
         if add_eos:
             res.append(EOS_ID)
         return res
 
-    def decode(self, subtokens: List[int]) -> str:
+    def decode(self, token_ids: List[int]) -> str:
         """Decode from list of int"""
         if isinstance(np.adarray):
-            subtokens = subtokens.toList()
-        if not subtokens:
+            token_ids = token_ids.toList()
+        if not token_ids:
             return ''
 
-        assert isinstance(subtokens, list) and isinstance(subtokens[0], int), (
+        assert isinstance(token_ids, list) and isinstance(token_ids[0], int), (
         "Subtokens argument passed into decode() must be a list of integers.")
 
-        return _join_tokens_to_string(self._subtoken_ids_to_tokens(subtokens))
+        return _join_tokens_to_string(self._token_ids_to_tokens(token_ids))
 
-    def _token_to_subtoken_ids(self, token: str) -> List[int]:
-        """Encode a single token into a list of subtoken ids"""
-        cache_loca = hash(token) % self._cache_size
-        cache_k, cache_v = self._cache[cache_loca]
-        if token == hash_k:
-            return cache_v
-
-        res = _split_string_to_tokens(
-                _escape_token(token, self.alphabet), self.subtoken_to_id_dict,
-                self.max_subtoken_length)
-        res = [self.subtoken_to_ids_dict[subtoken_id] for subtoken_id in res]
-        return res
-
-    def _subtoken_ids_to_tokens(self, subtokens: List[int]) -> List[str]:
+    def _token_ids_to_token(self, token_ids: List[int]) -> List[str]:
         """Convert a list of subtoken ids into a list of string tokens"""
-        escaped_tokens = ''.join([
-            self.subtoken_list[s] for s in subtokens
-            if s < len(self.subtoken_list)])
-        escaped_tokens = escaped_tokens.split('_')
+        res = [self.token_list[i] for i in token_ids if i < self.vocab_size]
 
-        res = []
-        for token in escaped_tokens:
-            if token:
-                res.append(_unescape_token(token))
         return res
 
 
@@ -178,39 +156,38 @@ def _split_string_to_tokens(text: str, type_=None) -> List[str]:
         if is_alnum[pos] != is_alnum[pos-1] and text[pos] != "'" and text[pos-1] != "'":
             token = text[start:pos]
             if token != u' ' or start == 0:
-                if token != u', ':
-                    res.append(token)
+                res.append(token)
             start = pos
     
     res.append(text[start:])
     return res
 
 
-#def _split_zh_string_to_tokens(text) -> List[str]:
-
 
 def _save_vocab(vocab_file, subtoken_list):
     """Save subtokens into file"""
     with tf.gfile.Open(vocab_file, 'w') as f:
         for token in subtoken_list:
-            f.write('{}\n'.format(token))
+            f.write('{}\n'.format(token.strip()))
+
 
 
 def _load_vocab_file(vocab_file, reserved_tokens=RESERVED_TOKENS) -> List[str]:
     """Load subtokens and ensures the reserved tokens are at top"""
-    subtoken_list = []
+    token_list = []
     with tf.gfile.Open(vocab_file, mode='r') as f:
         for line in f:
-            subtoken = line.strip()
-            subtoken = subtoken[1:-1]
-            if subtoken in reserved_tokens:
+            token = line.strip()
+            #token = token[1:-1]
+            if token in reserved_tokens:
                 continue
-            subtoken_list.append(subtoken)
+            token_list.append(token)
 
-    return reserved_tokens + subtoken_list
+    return reserved_tokens + token_list
 
 
-def _join_tokens_to_string(tokens, type_: str) -> str:
+
+def _join_tokens_to_string(tokens, type_: str=None) -> str:
     """Join a list of string tokens into a single string.
         type: zh or en
     """
@@ -224,6 +201,29 @@ def _join_tokens_to_string(tokens, type_: str) -> str:
                 res.append(u' ')
             res.append(token)
         return ''.join(res)
+
+
+
+def _count_tokens(files: List[str]) -> Dict[str, int]:
+    """Count token in files.
+
+    Samples file_limit bytes from each file, and counts the words that appear
+    in the samples. The samples are semi-evenly distributed across the file.
+    """
+    token_counts = collections.defaultdict(int)
+    
+    for file_path in files:
+        with tf.gfile.Open(file_path, mode='r') as f:
+            for line in f.readlines():
+                for token in _split_string_to_tokens(line):
+                    token_counts[token] += 1
+
+    return token_counts
+
+
+def _list_to_index_dict(lst):
+    return {item: n for n, item in enumerate(lst)}
+
 
 
 def _escape_token(token: str, alphabet: List[str]) -> str:
@@ -261,94 +261,92 @@ def _unescape_token(token: str) -> str:
     return _UNESCAPE_REGEX.sub(match, token)
 
 
-
-def _count_tokens(files: List[str], file_limit=1e6) -> Dict[str, int]:
-    """Count token in files.
-
-    Samples file_limit bytes from each file, and counts the words that appear
-    in the samples. The samples are semi-evenly distributed across the file.
-    """
-    token_counts = collections.defaultdict(int)
-    
-    for file_path in files:
-        with tf.gfile.Open(file_path, mode='r') as f:
-            file_byte_budget = file_limit
-            counter = 0
-            lines_to_skip = int(f.size() / (file_byte_budget*2))
-
-            for line in f:
-                if counter < lines_to_skip:
-                    counter += 1
-                else:
-                    if file_byte_budget < 0:
-                        break
-                    line = line.strip()
-                    file_byte_budget -= len(line)
-                    counter = 0
-
-                for token in _split_string_to_tokens(line):
-                    token_counts[token] += 1
-
-    return token_counts
-
-
-def _list_to_index_dict(lst):
-    return {item: n for n, item in enumerate(lst)}
-
-
-
-def _generate_subtokens_with_target_vocab_size(
-    token_counts, alphabet, target_size, threshold, min_count=None,
-    reserved_tokens=None):
-  """Generate subtoken vocabulary close to the target size."""
-  if reserved_tokens is None:
-    reserved_tokens = RESERVED_TOKENS
-
-  if min_count is not None:
-    tf.logging.info("Using min_count=%d to generate vocab with target size %d" %
-                    (min_count, target_size))
-    return _generate_subtokens(
-        token_counts, alphabet, min_count, reserved_tokens=reserved_tokens)
-
-
-def _generate_subtokens(
-    token_counts, alphabet, min_count, num_iterations=4,
-    reserved_tokens=RESERVED_TOKENS):
-    """Create a list of subtokens in decreasing order of frequency.
-        
-        Args:
-            token_counts: dict mapping str tokens -> int count
-            alphabet: set of characters
-            min_count: int minimum number of times a subtoken must appear before it is
-                        added to the vocabulary.
-            num_iterations: int number of iterations to generate new tokens.
-            reserved_tokens: list of tokens that will be added to the beginning to the
-                                returned subtoken list.
-        Returns:
-            Sorted list of subtokens (most frequent first)
-      """
-
-    # Use alphabet set to create initial list of subtokens
-    subtoken_list = reserved_tokens + list(alphabet)
-    max_subtoken_length = 1
-
-    # On each iteration, segment all words using the subtokens defined in
-    # subtoken_dict, count how often the resulting subtokens appear, and update
-    # the dictionary with subtokens w/ high enough counts.
-    for i in range(num_iterations):
-        tf.logging.info("\tGenerating subtokens: iteration %d" % i)
-        # Generate new subtoken->id dictionary using the new subtoken list.
-        subtoken_dict = _list_to_index_dict(subtoken_list)
-
-        # Create dict mapping subtoken->count, with additional subtokens created
-        # from substrings taken from the tokens.
-        subtoken_counts = _count_and_gen_subtokens(
-            token_counts, alphabet, subtoken_dict, max_subtoken_length)
-
-        # Generate new list of subtokens sorted by subtoken count.
-        subtoken_list, max_subtoken_length = _gen_new_subtoken_list(
-            subtoken_counts, min_count, alphabet, reserved_tokens)
-
-        tf.logging.info("\tVocab size: %d" % len(subtoken_list))
-    
-    return subtoken_list
+#def _generate_subtokens_with_target_vocab_size(
+#    token_counts, alphabet, target_size, threshold, min_count=None,
+#    reserved_tokens=None):
+#  """Generate subtoken vocabulary close to the target size."""
+#  if reserved_tokens is None:
+#    reserved_tokens = RESERVED_TOKENS
+#
+#  if min_count is not None:
+#    tf.logging.info("Using min_count=%d to generate vocab with target size %d" %
+#                    (min_count, target_size))
+#    return _generate_subtokens(
+#        token_counts, alphabet, min_count, reserved_tokens=reserved_tokens)
+#
+#
+#def _generate_subtokens(
+#    token_counts, alphabet, min_count, num_iterations=4,
+#    reserved_tokens=RESERVED_TOKENS):
+#    """Create a list of subtokens in decreasing order of frequency.
+#        
+#        Args:
+#            token_counts: dict mapping str tokens -> int count
+#            alphabet: set of characters
+#            min_count: int minimum number of times a subtoken must appear before it is
+#                        added to the vocabulary.
+#            num_iterations: int number of iterations to generate new tokens.
+#            reserved_tokens: list of tokens that will be added to the beginning to the
+#                                returned subtoken list.
+#        Returns:
+#            Sorted list of subtokens (most frequent first)
+#      """
+#
+#    # Use alphabet set to create initial list of subtokens
+#    subtoken_list = reserved_tokens + list(alphabet)
+#    max_subtoken_length = 1
+#
+#    # On each iteration, segment all words using the subtokens defined in
+#    # subtoken_dict, count how often the resulting subtokens appear, and update
+#    # the dictionary with subtokens w/ high enough counts.
+#    for i in range(num_iterations):
+#        tf.logging.info("\tGenerating subtokens: iteration %d" % i)
+#        # Generate new subtoken->id dictionary using the new subtoken list.
+#        subtoken_dict = _list_to_index_dict(subtoken_list)
+#
+#        # Create dict mapping subtoken->count, with additional subtokens created
+#        # from substrings taken from the tokens.
+#        subtoken_counts = _count_and_gen_subtokens(
+#            token_counts, alphabet, subtoken_dict, max_subtoken_length)
+#
+#        # Generate new list of subtokens sorted by subtoken count.
+#        subtoken_list, max_subtoken_length = _gen_new_subtoken_list(
+#            subtoken_counts, min_count, alphabet, reserved_tokens)
+#
+#        tf.logging.info("\tVocab size: %d" % len(subtoken_list))
+#    
+#    return subtoken_list
+#
+#
+#
+#def _count_and_gen_subtokens(token_counts, 
+#        alphabet, subtoken_list, max_subtoken_length) -> Dict[str, int]:
+#    """Count number of the subtokens appear, and generateb new subtokens
+#
+#    Args:
+#        token_counts: Dict mapping to every token appera int the files
+#        alphabet: list of allow characters.
+#        subtoken_dict: dict mapping subtokens to ids.
+#        max_subtoken_length: maximum length of subtoken in subtoken_dict.
+#  
+#    Returns:
+#        A defaultdict mapping subtokens to the number of times they appear in the
+#        tokens. The dict may contain new subtokens.
+#    """
+#    subtoken_counts = collections.defaultdict(int)
+#    for token, count in token_counts.items():
+#        token = _escape_token(token, alphabet)
+#        subtokens = _split_token_to_subtokens(
+#                token, subtoken_list, max_subtoken_length)
+#
+#        # Generate new subtoken 
+#        start = 0
+#        for sub in subtokens:
+#            for end in range(start+1, len(token)+1):
+#                new_sub = token[start:end]
+#                subtoken_counts[new_sub] += count
+#            start += len(sub)
+#
+#    return subtoken_counts
+#
+# 
