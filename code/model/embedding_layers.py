@@ -34,5 +34,31 @@ class EmbeddingSharedWeights(tf.layers.Layer):
         @r:
             embeddings: float32 tensor with shape [batch_size, length, hidden_size]
         """
-        with tf.name_scope()
+        with tf.name_scope('embeddings'):
+            # Mask shape [batch_size, length]
+            mask = tf.cast(tf.not_equal(x, 0), tf.float32)
+
+            embeddings = tf.gather(self.shared_weights, x)
+            embeddings *= rd.expand_dims(mask, -1)
+            embeddings *= self.hidden_size ** 0.5
+
+            return embeddings
+
+    def linear(self, x):
+        """Get the logits of the embeddings layer.
+        
+        Args:
+            x: input float32 tensor shape [batch_size, length, hidden_size]
+        @r: 
+            float32 tensor shape [batch_size, length, vocab_size]
+        """
+        with tf.name_scope('presoftmax_linear'):
+            batch_size =  tf.shape(x)[0]
+            length = tf.shape(x)[1]
+
+            x = tf.reshape(x, [-1, self.hidden_size])
+            logits = tf.matmul(x, self.shared_weights, transpose_b=True)
+
+            return tf.reshape(logits, [batch_size, length, self.vocab_size])
+        
         
