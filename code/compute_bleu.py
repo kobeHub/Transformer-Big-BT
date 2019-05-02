@@ -47,22 +47,22 @@ def bleu_wrapper(ref_file, hyp_file, case_sensitive=False):
     ref_lines = tf.gfile.Open(ref_file).read().strip().splitlines()
     hyp_lines = tf.gfile.Open(hyp_file).read().strip().splitlines()
 
-    if len(ref_lines) != len(hpy_lines):
+    if len(ref_lines) != len(hyp_lines):
         raise ValueError("Reference and translation files not same size")
 
     if not case_sensitive:
         ref_lines = [x.lower() for x in ref_lines]
-        hpy_lines = [x.lower() for x in hpy_lines]
+        hyp_lines = [x.lower() for x in hyp_lines]
     ref_tokens = [bleu_tokenize(x) for x in ref_lines]
-    hyp_tokens = [bleu_tokenize(x) for x in hpy_lines]
+    hyp_tokens = [bleu_tokenize(x) for x in hyp_lines]
 
-    return metrics.compute_bleu(ref_tokens, hpy_tokens) * 100
+    return metrics.compute_bleu(ref_tokens, hyp_tokens) * 100
 
 
 
-def bleu_results(ref_file: str, hpy_file: str, case_sensitive: bool):
+def bleu_results(ref_file: str, hyp_file: str, case_sensitive: bool):
     tf.logging.info('Computing the BLEU...')
-    score = bleu_wrapper(ref_file, hpy_lines, case_sensitive)
+    score = bleu_wrapper(ref_file, hyp_lines, case_sensitive)
     if case_sensitive:
         tf.logging.info('Case sensitive results: {}'.format(score))
     else:
