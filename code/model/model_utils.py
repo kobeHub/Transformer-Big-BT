@@ -41,4 +41,42 @@ def position_encoding(length, hidden_size, min_timescale=1.0,
     return signal
 
 
+def get_padding(x, padding_value=0):
+    """Get float tensor representing the padding of x. which 
+    1 -> nonpading, 1 -> padding.
+    """
+    return tf.cast(tf.equal(x, padding_value), tf.float32)
 
+
+
+def get_padding_bias(x):
+    """Calcuate bias tensor from padding values in tensor.
+    
+    Args:
+        x: int tensor shape [batch_size, length]
+
+    @r:
+        shape [batch_size, 1, 1, length]
+    """
+    with tf.name_scope('attention_bias'):
+        padding = get_padding(x)
+        attention_bias = padding * _NEG_INF
+        attention_bias = tf.expand_dims(
+                tf.expand_dims(attention_bias, axis=1), axis=1)
+        return attention_bias
+
+
+
+def get_decoder_self_attention_bias(length):
+    """Calculate bias for decoder that maintains model's autoregression property.
+    
+    Args:
+        length: int length of seq
+    @r:
+        float tensor [1, 1, length, length]
+    """
+    with tf.name_scope('decoder_self_attention_bias'):
+        valid_locs = tf.matrix_band_part(tf.ones([length, length]), -1, 0)
+        valid_locs = tf.reshape(valid_locs, [1, 1, length, length])
+        
+    return decoder_bias
