@@ -9,14 +9,14 @@ import sys
 import unicodedata
 
 import tensorflow as tf
-
+import metrics
 
 
 class UnicodeRegex(object):
     """Recognize all punctuation and symbols"""
 
     def __init__(self):
-        punctuation = self.property_chars('p')
+        punctuation = self.property_chars('P')
         self.nondigit_punct_re = re.compile(r'([^\d])([' + punctuation + r'])')
         self.punct_nondigit_re = re.compile(r'([' + punctuation + r'])([^\d])')
         self.symbol_re = re.compile(r'([' + self.property_chars('S') + r'])')
@@ -56,7 +56,7 @@ def bleu_wrapper(ref_file, hyp_file, case_sensitive=False):
     ref_tokens = [bleu_tokenize(x) for x in ref_lines]
     hyp_tokens = [bleu_tokenize(x) for x in hpy_lines]
 
-    # todo
+    return metrics.compute_bleu(ref_tokens, hpy_tokens) * 100
 
 
 
