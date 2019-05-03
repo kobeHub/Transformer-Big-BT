@@ -27,11 +27,15 @@ BASE_PARAMS = defaultdict(
         attention_dropout=0.1,
         relu_dropout=0.1,
 
-        # train
+        # train  //todo
         label_smoothing=0.1,
         learning_rate=2.0,
         learning_rate_deacy_rate=1.0,
         lenaring_rate_warmup_steps=16000,
+        train_steps=1000000,
+        steps_between_evals=10000,
+        train_epoches=10,
+        epoches_between_evals=2,
 
         # optimizer
         optimizer_adam_beta1=0.9,

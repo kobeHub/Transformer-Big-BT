@@ -33,6 +33,7 @@ from preprocess import tokenizer
 from preprocess import dataset
 
 
+
 # quick use of constant
 _TRAIN = tf.estimator.ModeKeys.TRAIN
 _EVAL = tf.estimator.ModeKeys.EVAL
@@ -253,5 +254,87 @@ def run_loop(estimator, controler_, train_hooks=None, bleu_source=None,
 
 
 
+def construct_estimator(model_dir, params, controler_):
+    # todo 
+    distribution_strategy = distribution_utils.get_distribution_strategy(
+            )
+    return tf.estimator.Estimator(
+            model_fn=model_fn,
+            model_dir=model_dir,
+            params=params,
+            config=tf.estimator.RunConfig(train_distribution=distribution_strategy))
 
-    
+
+def run_transformaer(num_gpus, params_set, data_dir, model_dir, export_dir,
+        num_parallel_calls, static_batch, batch_size, allow_ffn_pad, 
+        use_synthetic_data, bleu_source, bleu_ref, stop_threshold, vocab_file):
+    """Run the transformer train and evaluation.
+
+    Args:
+        num_gpus: num of gpus
+        params_set: `base` or `tini`
+        data_dir: specific the dataset directory
+        model_dir: dir of the model
+        num_parallel_calls: parallel calls num
+        batch_size: batch_size
+        allow_ffn_pad: bool
+    """
+    if params_set == 'base':
+        params_ = params.BASE_PARAMS
+    else:
+        params_ = params.TINY_PARAMS
+
+    params_['data_dir'] = data_dir
+    params_['model_dir'] = model_dir
+    params_['num_parallel_calls'] = num_parallel_calls
+    params_['static_batch'] = static_batch
+    params_['allow_ffn_pad'] = allow_ffn_pad
+    params_['use_synthetic_data'] = use_synthetic_data
+
+    # Set batch_size depends on the GPU availability
+    params_['batch_size'] = batch_size or params['default_batch_size']
+    params_['batch_size'] = distribution_utils.per_replica_batch_size(
+            params_['batch_size'], num_gpus)
+
+    controler_manager = controler.Controler(
+            train_steps=params_['train_steps'], 
+            steps_between_evals=params_['steps_between_evals'], 
+            train_epoches=params_['train_epoches'],
+            epoches_between_evals=params_['epoches_between_evals'], 
+            default_train_epoches=DEFAULT_TRAIN_EPOCHES, 
+            batch_size=params_['batch_size'],
+            max_length=params_['max_length'])
+
+    params_['repeated_dataset'] = controler_manager.repeated_dataset
+
+    # Create hooks
+    train_hooks = hook_helper.get_train_hooks(
+            hooks,
+            model_dir=model_dir,
+            tensors_to_log=TENSORS_TO_LOG,
+            batch_size=controler_manager.batch_size,
+            use_tpu=False)
+
+    # Create hooks evaluate transformer model  # todo
+    estimator = construct_estimator(model_dir, params_, controler_manager)
+    # Run loop
+    run_loop(
+            estimator=estimator, 
+            controler_=controler_manager, 
+            train_hooks=train_hooks, 
+            bleu_source=bleu_source, 
+            bleu_ref=bleu_ref, 
+            bleu_threshold=stop_threshold, 
+            vocab_file=vocab_file)
+
+    # export 
+    if export_dir:
+        serving_input_fn = export.build_tensor_serving_input_receive_fn(
+                shape=[None], dtype=tf.float64, batch_size=None)
+        estimator.export_savedmodel(
+                export_dir, 
+                serving_input_fn,
+                assets_extra={'vocab.txt': vocab_file},
+                strip_default_attrs=True)
+
+
