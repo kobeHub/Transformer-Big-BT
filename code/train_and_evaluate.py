@@ -32,7 +32,10 @@ from model import params
 from preprocess import tokenizer
 from preprocess import dataset
 
-
+from utils import export
+from utils import hook_helper
+from utils import logger
+from utils import distribution_utils
 
 # quick use of constant
 _TRAIN = tf.estimator.ModeKeys.TRAIN
