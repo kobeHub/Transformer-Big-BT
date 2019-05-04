@@ -48,13 +48,14 @@ def text_line_iterator(path: str) -> Iterator:
 
 
 
-def write_file(writer, filename: str) -> int:
+def write_file(writer, filename: str, newline=True) -> int:
     """Write all lines from file using the writer"""
     l = 0
     for line in text_line_iterator(filename):
         l += 1
         writer.write(line)
-        writer.write('\n')
+        if newline:
+            writer.write('\n')
     return l
 
 
@@ -75,9 +76,9 @@ def compile_files(raw_dir: str, raw_files, name: str) -> str:
 def get_raw_files(raw_dir: str, excepts: List['str']=None) -> List[str]:
     abs_dir = os.path.abspath(raw_dir)
     for r, _, f in os.walk(raw_dir):
-        if f and f[0] not in excepts:
-            yield os.path.join(r, f[0])
-        
+        if f:
+            if not excepts or f[0] not in excepts:
+                yield os.path.join(r, f[0])
 
 
 
@@ -90,7 +91,7 @@ def merge_umcorpus(raw_dir: str, output_file: str) -> int:
     with tf.gfile.Open(output_file, mode='w') as writer:
         for f in files:
             tf.logging.info('\t' + f)
-            lines += write_file(writer, f) 
+            lines += write_file(writer, f, False) 
     return lines
 
 
@@ -146,7 +147,7 @@ def encode_and_save(tokenizer, input_file, output_dir, tag,
 
 def shared_file_name(path, vocab, tag, num, total_num) -> str:
     """"Create name for shared files"""
-    return os.path.join(path, '{}-{}-{}-of-{})'.format(
+    return os.path.join(path, '{}-{}-{}-of-{}'.format(
         vocab, tag, num, total_num))
 
 
@@ -242,7 +243,7 @@ def process(raw_dir: str, eval_dir: str, data_dir: int):
     train_tfrecord = encode_and_save(tokenizer_,
             MERGED_NAME, data_dir, _TRAIN_TAG, _NUM_TRAIN)
     eval_tfrecord = encode_and_save(tokenizer_,
-            eval_files, data_dir, _EVAL_TAG, _NUM_EVAl)
+            eval_files[0], data_dir, _EVAL_TAG, _NUM_EVAL)
     tf.logging.info('Using time {:.2f}s'.format(time.time() - start))
 
     tf.logging.info('4. Shuffle the train data')

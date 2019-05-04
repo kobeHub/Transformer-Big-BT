@@ -20,7 +20,7 @@ from code.preprocess.pre_data import process
 
 # Define default dir args
 umcorpus_raw = os.path.join(BASE_DIR, 'data/UMcorpus/RAW')
-eval_dir = os.path.join(umcorpus_raw, 'Testing')
+eval_dir = os.path.join(umcorpus_raw, 'data/Testing')
 umcorpus_data = os.path.join(BASE_DIR, 'data/UMcorpus/processed')
 
 def usage_test(name: str='') -> None:
