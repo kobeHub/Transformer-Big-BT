@@ -40,7 +40,7 @@ _ESCAPE_CHARS = set(u'\\_u;0123456789')
 _UNESCAPE_REGEX = re.compile(r'\\u|\\\\|\\([0-9]+);')
 _UNDEFINED_UNICODE = u'\u3013'
 
-
+# Tokens should not in vocab 
 
 
 
@@ -88,7 +88,7 @@ class Tokenizer:
         res = []
         tokens = _split_string_to_tokens(raw_string)
         for token in tokens:
-            res.append(self.token_to_id_dict[token])
+            res.append(self.token_to_id_dict[token.strip()])
         if add_eos:
             res.append(EOS_ID)
         return res
@@ -147,14 +147,14 @@ def _split_string_to_tokens(text: str, type_=None) -> List[str]:
     #    res.append(text[0])
 
     for pos in range(1, len(text)):
-        if is_alnum[pos-1] and _IS_CHINESE_CHAR(text[pos-1]) and text[pos-1] not in _NOT_TOKEN:
+        if is_alnum[pos-1] and _IS_CHINESE_CHAR(text[pos-1]):
             res.append(text[pos-1])
             start = pos
             continue
 
         if is_alnum[pos] != is_alnum[pos-1] and text[pos] != "'" and text[pos-1] != "'":
             token = text[start:pos]
-            if (token != u' ' or start == 0) and token not in _NOT_TOKEN:
+            if token != u' ' or start == 0:
                 res.append(token)
             start = pos
 
