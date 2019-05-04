@@ -47,7 +47,9 @@ class ComputeBleuTest(tf.test.TestCase):
 
   def test_bleu_tokenize(self):
     s = "Test0, 1 two, 3"
+    print(s)
     tokenized = compute_bleu.bleu_tokenize(s)
+    print(tokenized)
     self.assertEqual(["Test0", ",", "1", "two", ",", "3"], tokenized)
 
 

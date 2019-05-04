@@ -30,11 +30,23 @@ class TestTokenizerUtils(unittest.TestCase):
         self.assertEqual(_join_tokens_to_string(['All', 'right', '?']), 'All right?')
 
     def test_Subtokenizer(self):
-        tokenizer = Tokenizer.vocab_from_files('vocab', ['./vocab.test'])
+        tokenizer = Tokenizer.vocab_from_files('vocab.ende.', ['./vocab.test'])
         print(tokenizer.token_list)
         print(tokenizer.token_to_id_dict)
         print(tokenizer.vocab_size)
         self.assertEqual(len(tokenizer.token_list), tokenizer.vocab_size)
+
+    def test_encode_decode(self):
+        tokenizer = Tokenizer('vocab.ende.46')
+        str1 = 'what you seen locked into?'
+        str2 = '路都是行者，what?'
+        res1 = tokenizer.encode(str1, add_eos=True)
+        str11 = tokenizer.decode(res1, add_eos=True)
+        res2 = tokenizer.encode(str2, add_eos=True)
+        str21 = tokenizer.decode(res2, add_eos=True, type_='zh')
+        print(str1, str2)
+        print(res1, res2)
+        print(str11, str21)
 
 
 if __name__ == '__main__':
