@@ -46,6 +46,11 @@ DEFAULT_TRAIN_EPOCHES = 10
 INF = int(1e9)
 BLEU_DIR = 'bleu'
 
+# Directory contains tensors that are logged by logging hooks
+TENSORS_TO_LOG = {
+        'learning_rate': 'model/get_train_op/learning_rate/lr',
+        'cross_entropy_loss': 'model/cross_entropy'}
+
 
 
 def model_fn(features, labels, mode, params):
@@ -257,10 +262,18 @@ def run_loop(estimator, controler_, train_hooks=None, bleu_source=None,
 
 
 
-def construct_estimator(model_dir, params, controler_):
-    # todo 
+def construct_estimator(model_dir, distribution_strategy, gpu_nums,
+        all_reduce_alg, params, controler_):
+    """ Construct an estimator.
+
+    Args:
+        args for the distribution: distribution_strategy, gpu_nums
+        all_reduce_alg
+    """
     distribution_strategy = distribution_utils.get_distribution_strategy(
-            )
+            distribution_strategy=distribution_strategy,
+            num_gpus=num_gpus,
+            all_reduce_alg=all_reduce_alg)
     return tf.estimator.Estimator(
             model_fn=model_fn,
             model_dir=model_dir,
