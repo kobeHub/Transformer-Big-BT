@@ -281,9 +281,10 @@ def construct_estimator(model_dir, distribution_strategy, gpu_nums,
             config=tf.estimator.RunConfig(train_distribution=distribution_strategy))
 
 
-def run_transformaer(num_gpus, params_set, data_dir, model_dir, export_dir,
-        num_parallel_calls, static_batch, batch_size, allow_ffn_pad, 
-        use_synthetic_data, bleu_source, bleu_ref, stop_threshold, vocab_file):
+def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: str, 
+        export_dir: str, num_parallel_calls: int, static_batch: bool, batch_size, 
+        allow_ffn_pad: bool, use_synthetic_data: bool, bleu_source, bleu_ref, 
+        stop_threshold, vocab_file):
     """Run the transformer train and evaluation.
 
     Args:
