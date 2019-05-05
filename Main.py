@@ -15,7 +15,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 import tensorflow as tf
 
 from code.preprocess.pre_data import process
-
+from code.train_and_evaluate import run_transformaer
 
 
 # Define default dir args
@@ -30,8 +30,9 @@ def pre_data(raw_dir=umcorpus_raw, eval_dir=eval_dir, data_dir=umcorpus_data, sh
     print('Run data preprocess...')
     process(raw_dir, eval_dir, data_dir, shuffle)
 
-def train() -> None:
-    print('Begin to train the model...')
+def train():
+    print('Begin to train and eval Transformer model...')
+
 
 
 
