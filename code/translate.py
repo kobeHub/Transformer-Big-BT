@@ -109,7 +109,55 @@ def translate_text(estimator, tokenizer_, txt):
 
 
 
+def translate_main(text: str=None, inputs_file: str=None, output_file: str=None, args=None):
+    """Translating entrance for CLI usage. 
+    
+    Args:
+        args: dict for CLI args -- 
+                params_set: `base` or `tiny`
+                vocab_file: the abs path for the vocab_file
+                model_dir: the model exported directory
 
+    """
+    
+    from code.model import params
+    from code.train_and_evaluate import model_fn
+
+    if not text and not inputs_file:
+        tf.logging.warn('There is nothing to translate!')
+        return
+   
+    tf.logging.info('Translating from CLI, restoring the model ...')
+    tokenizer_ = tokenizer.Tokenizer(args['vocab_file'])
+
+    if args['params_set'] == 'base':
+        params_ = params.BASE_PARAMS
+    else:
+        params_ = params.TINY_PARAMS
+
+    params_['beam_size'] = _BEAM_SIZE
+    params_['alpha'] = _ALPHA
+    params_['extra_decode_length'] = _EXTRA_DECODE_LENGTH
+    params_['batch_size'] = _DECODE_BATCH_SIZE
+
+    estimator = tf.estimator.Estimator(model_fn=mode_fn,
+            model_dir=args['model_dir'],
+            params=params_)
+
+    if text:
+        tf.logging.info('Translating text: {}'.format(text))
+        translate_text(estimator, tokenizer_, text)
+
+    if inputs_file:
+        tf.logging.info('Translating file: {}'.format(inputs_file))
+        if not tf.gfile.Exists(inputs_file):
+            raise ValueError('File does not exists.')
+
+    if output_file:
+        tf.logging.info('The results will be in {}'.format(output_file))
+
+    translate_file(estimator, tokenizer_, inputs_file, output_file)
+    
 
 
 

@@ -22,10 +22,10 @@ import tempfile
 
 import tensorflow as tf
 
-import compute_bleu
-import metrics
-import controler
-import translate
+from code import compute_bleu
+from code import metrics
+from code import controler
+from code import translate
 
 from code.model import transformer
 from code.model import params
@@ -157,13 +157,13 @@ def get_gloabl_step(estimator):
     return int(estimator.lastest_checkpoint().split('-')[-1])
 
 
-def translate_and_compute_bleu(estimator, tokenizer, bleu_source, bleu_ref):
+def translate_and_compute_bleu(estimator, tokenizer_, bleu_source, bleu_ref):
     tmp = tempfile.NamedTemporaryFile(delete=False) 
     tmp_name = tmp.name
 
-    # //todo
+    # translate into tmp file 
     translate.translate_file(
-            estimator, tokenizer, bleu_source, output_file=tmp_name,
+            estimator, tokenizer_, bleu_source, output_file=tmp_name,
             print_all_translations=False)
 
     uncased_score = compute_bleu.bleu_wrapper(bleu_ref, tmp_filename, False)
@@ -173,10 +173,10 @@ def translate_and_compute_bleu(estimator, tokenizer, bleu_source, bleu_ref):
 
 
 def evaluate_and_log_bleu(estimator, bleu_source, bleu_ref, vocab_file):
-    tokenizer = tokenizer.Tokenizer(vocab_file)
+    tokenizer_ = tokenizer.Tokenizer(vocab_file)
 
     uncased_score, cased_score = translate_and_compute_bleu(
-            estimator, tokenizer, bleu_source, bleu_ref)
+            estimator, tokenizer_, bleu_source, bleu_ref)
 
     tf.logging.info('Cased bleu score: {}'.format(cased_score))
     tf.logging.info('Uncased bleu score: {}'.format(uncased_score))
