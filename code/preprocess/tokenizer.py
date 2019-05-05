@@ -49,7 +49,6 @@ _PUNCTUATIONS = uregex.property_chars('P')
 _SYMBOLS = uregex.property_chars('S')
 
 
-
 ######################### Define Subtokenizer class #################################
 
 class Tokenizer:
