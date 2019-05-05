@@ -12,6 +12,10 @@ tf.logging.set_verbosity(tf.logging.INFO)
 from tokenizer import _split_string_to_tokens
 from tokenizer import _join_tokens_to_string
 from tokenizer import Tokenizer
+from tokenizer import _escape_token, _unescape_token
+from tokenizer import _ALPHANUMERIC_CHAR_SET
+
+
 
 class TestTokenizerUtils(unittest.TestCase):
 
@@ -22,6 +26,7 @@ class TestTokenizerUtils(unittest.TestCase):
                 ['欢','迎','Alice','Let\'s', 'go', ', ', '还', '不', '错', '吧'])
         self.assertEqual(_split_string_to_tokens('Michale, 你为什么'), 
                 ['Michale', ', ', '你', '为','什', '么'])
+        print(_split_string_to_tokens('(a) Just a test'))
 
 
     def test_join_token_to_string(self):
@@ -47,6 +52,32 @@ class TestTokenizerUtils(unittest.TestCase):
         print(str1, str2)
         print(res1, res2)
         print(str11, str21)
+        self.assertEqual(str1, str11)
+        self.assertEqual(str2, str21)
+
+    def test_escape_token(self):
+        str1 = '\uffef('
+        str2 = '\u1261'
+        str3 = '我'
+        res1 = _escape_token(str1, _ALPHANUMERIC_CHAR_SET)
+        res2 = _escape_token(str2, _ALPHANUMERIC_CHAR_SET)
+        res3 = _escape_token(str3, _ALPHANUMERIC_CHAR_SET)
+        print()
+        print('Escape char test:')
+        print(res1)
+        print(res2)
+        print(res3)
+
+        print('Unescape char test:')
+        str11 = _unescape_token(res1)
+        str21 = _unescape_token(res2)
+        str31 = _unescape_token(res3)
+        print(str1, str11)
+        print(str2, str21)
+        print(str3, str31)
+
+
+
 
 
 if __name__ == '__main__':

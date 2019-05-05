@@ -16,6 +16,7 @@ import unicodedata
 
 
 from typing import List, Tuple, Iterator, Dict
+from code.compute_bleu import uregex
 
 
 #################### super constant ###########################
@@ -40,7 +41,9 @@ _ESCAPE_CHARS = set(u'\\_u;0123456789')
 _UNESCAPE_REGEX = re.compile(r'\\u|\\\\|\\([0-9]+);')
 _UNDEFINED_UNICODE = u'\u3013'
 
-# Tokens should not in vocab 
+# Punctuations and symbols shall be in the vocab
+_PUNCTUATIONS = uregex.property_chars('P')
+_SYMBOLS = uregex.property_chars('S')
 
 
 
@@ -87,8 +90,14 @@ class Tokenizer:
         """Encode string into a list of int"""
         res = []
         tokens = _split_string_to_tokens(raw_string)
+
+        
         for token in tokens:
-            res.append(self.token_to_id_dict[token.strip()])
+            try:
+                token = token.strip()
+                res.append(self.token_to_id_dict[token])
+            except KeyError:
+                break 
         if add_eos:
             res.append(EOS_ID)
         return res
@@ -115,6 +124,8 @@ class Tokenizer:
         res = [self.token_list[i] for i in token_ids if i < self.vocab_size]
 
         return res
+
+    
 
 
 ############################# Functions for utils ##################################

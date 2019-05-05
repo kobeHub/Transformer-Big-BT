@@ -81,7 +81,6 @@ def get_raw_files(raw_dir: str, excepts: List['str']=None) -> List[str]:
                 yield os.path.join(r, f[0])
 
 
-
 def merge_umcorpus(raw_dir: str, output_file: str) -> int:
     """Merge all the train file in UMcorpus into one file."""
     tf.logging.info('Merge UMcorpus into one file {}...'.format(output_file))
@@ -111,7 +110,7 @@ def encode_and_save(tokenizer, input_file, output_dir, tag,
             output_nums: The num of the output files
         :r  all files that product
     """
-    outputs_path = [shared_file_name(output_dir, _UMCORPUS, tag, i, output_nums)
+    outputs_path = [shared_file_name(output_dir, _UMCORPUS, tag, i+1, output_nums)
             for i in range(output_nums)]
 
     if all_exist(outputs_path):
@@ -140,7 +139,7 @@ def encode_and_save(tokenizer, input_file, output_dir, tag,
     for tmp_name, final_name in zip(tmp_files, outputs_path):
         tf.gfile.Rename(tmp_name, final_name)
 
-    tf.logging.info('Saved {} examples', (counter + 1) // 2)
+    tf.logging.info('Saved {} examples'.format((counter + 1) // 2))
     return outputs_path
 
 
@@ -159,7 +158,7 @@ def shuffle_record(filename) -> None:
     tmp_name = filename + '.unshuffled'
     tf.gfile.Rename(filename, tmp_name)
 
-    reader = tf.compat.v1.io.tf_record_iterator(tmp_name)
+    reader = tf.io.tf_record_iterator(tmp_name)
     records = []
     for record in reader:
         records.append(record)
@@ -206,7 +205,7 @@ def vocab_exist(dir_name):
     return ''
 
 
-def process(raw_dir: str, eval_dir: str, data_dir: int):
+def process(raw_dir: str, eval_dir: str, data_dir: int, shuffle: bool):
     """Get the input data for transformer model."""
     safe_mkdir(data_dir)
 
@@ -246,9 +245,10 @@ def process(raw_dir: str, eval_dir: str, data_dir: int):
             eval_files[0], data_dir, _EVAL_TAG, _NUM_EVAL)
     tf.logging.info('Using time {:.2f}s'.format(time.time() - start))
 
-    tf.logging.info('4. Shuffle the train data')
-    start = time.time()
-    for fname in train_tfrecord:
-        shuffle_record(fname)
-    tf.logging.info('Using time {}s'.format(time.time() - start))
+    if shuffle:
+        tf.logging.info('4. Shuffle the train data')
+        start = time.time()
+        for fname in train_tfrecord:
+            shuffle_record(fname)
+        tf.logging.info('Using time {}s'.format(time.time() - start))
 

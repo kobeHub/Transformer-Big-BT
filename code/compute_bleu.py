@@ -9,7 +9,7 @@ import sys
 import unicodedata
 
 import tensorflow as tf
-import metrics
+from code import metrics
 
 
 class UnicodeRegex(object):

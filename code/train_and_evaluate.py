@@ -27,15 +27,15 @@ import metrics
 import controler
 import translate
 
-from model import transformer
-from model import params
-from preprocess import tokenizer
-from preprocess import dataset
+from code.model import transformer
+from code.model import params
+from code.preprocess import tokenizer
+from code.preprocess import dataset
 
-from utils import export
-from utils import hook_helper
-from utils import logger
-from utils import distribution_utils
+from code.utils import export
+from code.utils import hook_helper
+from code.utils import logger
+from code.utils import distribution_utils
 
 # quick use of constant
 _TRAIN = tf.estimator.ModeKeys.TRAIN

@@ -26,9 +26,9 @@ umcorpus_data = os.path.join(BASE_DIR, 'data/UMcorpus/processed')
 def usage_test(name: str='') -> None:
     basic_usage(name)
 
-def pre_data(raw_dir=umcorpus_raw, eval_dir=eval_dir, data_dir=umcorpus_data) -> None:
+def pre_data(raw_dir=umcorpus_raw, eval_dir=eval_dir, data_dir=umcorpus_data, shuffle=True) -> None:
     print('Run data preprocess...')
-    process(raw_dir, eval_dir, data_dir)
+    process(raw_dir, eval_dir, data_dir, shuffle)
 
 def train() -> None:
     print('Begin to train the model...')
