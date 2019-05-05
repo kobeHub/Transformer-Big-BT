@@ -332,7 +332,7 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
             batch_size=controler_manager.batch_size,
             use_tpu=False)
 
-    # Create hooks evaluate transformer model  # todo
+    # Create estimator to train and eval model
     estimator = construct_estimator(model_dir, params_, controler_manager)
     # Run loop
     run_loop(

@@ -21,7 +21,7 @@ from absl import flags
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 
-import cloud_lib
+from code.utils import cloud_lib
 
 METRIC_LOG_FILE_NAME = "metric.log"
 BENCHMARK_RUN_LOG_FILE_NAME = "benchmark_run.log"

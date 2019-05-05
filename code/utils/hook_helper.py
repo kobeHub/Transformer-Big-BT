@@ -10,9 +10,9 @@
 
 import tensorflow as tf
 
-import hooks
-import logger
-import metric_hook
+from code.utils import hooks
+from code.utils import logger
+from code.utils import metric_hook
 
 _TENSORS_TO_LOG = dict((x, x) for x in ['learning_rate',
                                         'cross_entropy',

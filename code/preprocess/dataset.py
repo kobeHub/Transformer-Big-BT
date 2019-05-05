@@ -25,7 +25,7 @@ _BOUNDARY_SCALE = 1.1
 
 
 
-def _read_records(file_name: str):
+def _load_records(file_name: str):
     return tf.data.TFRecordDataset(file_name, buffer_size=_READ_RECORD_BUFFER)
 
 
@@ -37,8 +37,9 @@ def _parse_exmaple(serialized_example):
             'inputs': tf.VarLenFeature(tf.int64),
             'targets': tf.VarLenFeature(tf.int64)}
     parsed = tf.parse_single_example(serialized_example, data_fields)
-    inputs = tf.sparse_tensor_to_dense(parsed['inputs'])
-    targets = tf.sparse_tensor_to_dense(parsed['targets'])
+
+    inputs = tf.sparse.to_dense(parsed['inputs'])
+    targets = tf.sparse.to_dense(parsed['targets'])
     return inputs, targets
 
 
@@ -48,8 +49,8 @@ def _filter_max_length(exmaple, max_length=256):
             tf.size(exmaple[1]) <= max_length)
 
 
-def _get_example_length(exmaple):
-    length = tf.maximum(tf.shape(example[0])[0], tf.shape(exmaple[1])[0])
+def _get_example_length(example):
+    length = tf.maximum(tf.shape(example[0])[0], tf.shape(example[1])[0])
     return length
 
 
@@ -62,7 +63,7 @@ def _create_min_max_boundaries(max_length: int,
     boundaries = []
     a = min_boundary
     while a < max_length:
-        boundaries.append(a)
+        boundaries.append(int(a))
         a = max(a + 1, a * scale)
 
     min_ = [0] + boundaries
@@ -88,11 +89,11 @@ def _batch_examples(dataset, batch_size, max_length):
     # list of batch size for each bucket_id
     # bucket_batch_sizes[bucket_id] * buckets_max[bucket_id] <= batch_size
     bucket_batch_sizes = [batch_size // x for x in buckets_max]
-    bucket_batch_sizes = tf.constant(bucket_batch_sizes, dtype=tf.int64)
+    bucket_batch_sizes = tf.cast(bucket_batch_sizes, tf.int64)
 
     def example_to_bucket_id(example_input, example_target):
         """Get the bucket id of the example"""
-        seq_length = _get_example_length((exmaple_input, exmaple_target))
+        seq_length = _get_example_length((example_input, example_target))
 
         condition = tf.logical_and(
                 tf.less_equal(buckets_min, seq_length),
@@ -108,7 +109,7 @@ def _batch_examples(dataset, batch_size, max_length):
         bucket_batch_size = window_size(bucket_id)
         return grouped_dataset.padded_batch(bucket_batch_size, ([None], [None]))
 
-    return dataset.apply(tf.contrib.data.group_by_window(
+    return dataset.apply(tf.data.experimental.group_by_window(
         key_func=example_to_bucket_id,
         reduce_func=batching,
         window_size=None,
@@ -139,7 +140,7 @@ def _read_and_batch_from_files(file_pattern: str, batch_size: int,
     dataset = tf.data.Dataset.list_files(file_pattern, shuffle=shuffle)
 
     dataset = dataset.apply(
-      tf.contrib.data.parallel_interleave(
+      tf.data.experimental.parallel_interleave(
           _load_records, sloppy=shuffle, cycle_length=num_parallel_calls))
 
     # Parse each tf.Example into dict
@@ -153,7 +154,7 @@ def _read_and_batch_from_files(file_pattern: str, batch_size: int,
     else:
         dataset = _batch_examples(dataset, batch_size, max_length)
 
-    dataset = dataset.repeated(repeat)
+    dataset = dataset.repeat(repeat)
     dataset = dataset.prefetch(buffer_size=tf.contrib.data.AUTOTUNE)
 
     return dataset
@@ -166,7 +167,7 @@ def _generate_synthetic_data(params):
 
 def train_input_fn(params):
     """Load and return dataset for train"""
-    file_pattern = os.path.join(params['data_dir'] or '', 'train*')
+    file_pattern = os.path.join(params['data_dir'] or '', '*train*')
     if params['use_synthetic_data']:
         return generate_synthetic_data(params)
     return _read_and_batch_from_files(

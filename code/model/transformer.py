@@ -264,7 +264,7 @@ class PrePostProcessingWrapper(object):
 
 
 
-class EncoderStack(tf.layer.Layer):
+class EncoderStack(tf.layers.Layer):
     """Transformer encoder stack.
     Which is made of N layers, each layer is composed od the sublayers:
      1. self-attention layer

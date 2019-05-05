@@ -6,7 +6,8 @@
 """
 
 import tensorflow as tf
-import model_utils
+from code.model import model_utils
+
 
 
 

@@ -15,8 +15,11 @@ import six
 import unicodedata
 
 
+import sys
+import os
+sys.path.append('..')
 from typing import List, Tuple, Iterator, Dict
-from code.compute_bleu import uregex
+from compute_bleu import uregex
 
 
 #################### super constant ###########################

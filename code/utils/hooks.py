@@ -6,7 +6,7 @@
 """
 
 import tensorflow as tf
-import logger
+from code.utils import logger
 
 
 

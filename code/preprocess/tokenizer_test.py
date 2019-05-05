@@ -9,6 +9,7 @@ import tensorflow as tf
 tf.logging.set_verbosity(tf.logging.INFO)
 
 
+
 from tokenizer import _split_string_to_tokens
 from tokenizer import _join_tokens_to_string
 from tokenizer import Tokenizer
@@ -16,6 +17,10 @@ from tokenizer import _escape_token, _unescape_token
 from tokenizer import _ALPHANUMERIC_CHAR_SET
 
 
+import os 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DATA_DIR = os.path.join(BASE_DIR, 'data/UMcorpus/processed')
+VOCAB_FILE = os.path.join(DATA_DIR, 'vocab.ende.610390')
 
 class TestTokenizerUtils(unittest.TestCase):
 
@@ -77,7 +82,30 @@ class TestTokenizerUtils(unittest.TestCase):
         print(str3, str31)
 
 
-
+    def test_dataset_decode(self):
+        tokenizer = Tokenizer(VOCAB_FILE)
+        source_ids = [254939, 495884, 494380,  59409, 177392, 580889, 280523, 224280,
+       388662, 460449,  24656, 493847, 572291, 407836, 554070, 285057,
+       596466,   8485, 183316, 275391, 421102,  34097, 410489, 601320,
+            1,      0,      0,      0,      0,      0,      0,      0,
+            0,      0,      0,      0,      0,      0,      0,      0,
+            0,      0,      0,      0,      0,      0,      0,      0,
+            0,      0,      0,      0,      0,      0,      0,      0,
+            0,      0,      0,      0,      0,      0,      0,      0,
+            0]
+        target_ids = [222842, 595004, 608916,  41411, 437579, 484813, 597251,  48875,
+       437579, 425240, 305538, 116475, 597251, 567015,  32418, 484813,
+       301587,  60117, 178244, 552052, 462251, 284775, 587092, 543810,
+       608916,  27637, 191835, 456038, 317479, 209102,  19162, 559860,
+       467261, 467056, 587092, 170418, 348904, 102539, 329258, 328805,
+       216408, 399803, 484813, 587092, 317479,  40909, 371496, 173398,
+       384795, 449458, 597251, 449458, 413263,   5051,   5334,  21244,
+       266473,  27637,  27665, 163260, 368259, 587172,      1,      0,
+            0,      0]
+        s1 = tokenizer.decode(source_ids, add_eos=True)
+        s2 = tokenizer.decode(target_ids, add_eos=True, type_='zh')
+        print(s1)
+        print(s2)
 
 
 if __name__ == '__main__':
