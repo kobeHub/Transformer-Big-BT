@@ -185,9 +185,9 @@ def evaluate_and_log_bleu(estimator, bleu_source, bleu_ref, vocab_file):
 
 
 def _validate_file(filepath):
-  """Make sure that file exists."""
-  if not tf.gfile.Exists(filepath):
-    raise tf.errors.NotFoundError(None, None, "File %s not found." % filepath)
+    """Make sure that file exists."""
+    if not tf.gfile.Exists(filepath):
+        raise tf.errors.NotFoundError(None, None, "File %s not found." % filepath)
 
 
 def run_loop(estimator, controler_, train_hooks=None, bleu_source=None, 

@@ -19,7 +19,7 @@ import sys
 import os
 sys.path.append('..')
 from typing import List, Tuple, Iterator, Dict
-from compute_bleu import uregex
+from code.compute_bleu import uregex
 
 
 #################### super constant ###########################

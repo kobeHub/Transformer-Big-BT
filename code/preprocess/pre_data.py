@@ -81,6 +81,25 @@ def get_raw_files(raw_dir: str, excepts: List['str']=None) -> List[str]:
                 yield os.path.join(r, f[0])
 
 
+def split_bleu_file(test_file: str, source_path: str, target_path: str):
+    """Split test file into source and target file to compute BLEU."""
+    if all_exist([source_path, target_path]):
+        tf.logging.info('The source file and target file are already exists.')
+        return
+    flag = 0
+    sw = tf.gfile.Open(source_path, mode='w')
+    tw = tf.gfile.Open(target_path, mode='w')
+    for line in text_line_iterator(test_file):
+        if flag % 2 == 0:
+            sw.write(line)
+        else:
+            tw.write(line)
+        flag = 1 - flag
+    sw.close()
+    tw.close()
+    
+
+
 def merge_umcorpus(raw_dir: str, output_file: str) -> int:
     """Merge all the train file in UMcorpus into one file."""
     tf.logging.info('Merge UMcorpus into one file {}...'.format(output_file))
@@ -245,8 +264,14 @@ def process(raw_dir: str, eval_dir: str, data_dir: int, shuffle: bool):
             eval_files[0], data_dir, _EVAL_TAG, _NUM_EVAL)
     tf.logging.info('Using time {:.2f}s'.format(time.time() - start))
 
+    tf.logging.info('4. Split test file into source file and target file.')
+    source_path = os.path.join(data_dir, 'bleu_source.txt')
+    target_path = os.path.join(data_dir, 'bleu_target.txt')
+    split_bleu_file(eval_files[0], source_path, target_path)
+    tf.logging.info('\tWrite into {}, {}'.format(source_path, target_path))
+
     if shuffle:
-        tf.logging.info('4. Shuffle the train data')
+        tf.logging.info('\t5. Shuffle the train data')
         start = time.time()
         for fname in train_tfrecord:
             shuffle_record(fname)
