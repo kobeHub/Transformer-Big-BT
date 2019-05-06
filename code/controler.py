@@ -12,8 +12,8 @@ import tensorflow as tf
 _TRAIN, _EVAL = tf.estimator.ModeKeys.TRAIN, tf.estimator.ModeKeys.EVAL
 
 NUM_EXAMPLES = {
-        tf.estimator.ModeKeys.TRAIN: 100000,  # todo
-        tf.estimator.ModeKeys.EVAL: 3000      # todo
+        tf.estimator.ModeKeys.TRAIN: 2215000 ,  # //NOT FINAL
+        tf.estimator.ModeKeys.EVAL:  5000     # //NOT FINAL
         }
 
 

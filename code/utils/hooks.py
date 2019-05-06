@@ -1,6 +1,6 @@
 """
  Author: Tensorflow Authors
- Date: Fri 03 May 2019 10:17:26 PM CST
+ Date: Fri 03 May 2019
  
  Hook that counts examples per second every N steps or seconds.
 """

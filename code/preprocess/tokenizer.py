@@ -63,7 +63,7 @@ class Tokenizer:
         self.token_to_id_dict = _list_to_index_dict(self.token_list)
         self.vocab_size = len(self.token_to_id_dict)
 
-        # todo: create cache to speed tokenization
+        
 
 
     @staticmethod

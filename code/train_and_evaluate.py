@@ -225,7 +225,7 @@ def run_loop(estimator, controler_, train_hooks=None, bleu_source=None,
     for i in range(controler_.train_eval_iterations):
         tf.logging.info('Iteration {}:'.format(i+1))
         
-        # //todo
+        # Start train 
         estimator.train(dataset.train_input_fn,
                 steps=controler_.single_iteration_eval_steps,
                 hooks=train_hooks)
@@ -282,9 +282,9 @@ def construct_estimator(model_dir, distribution_strategy, gpu_nums,
 
 
 def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: str, 
-        export_dir: str, num_parallel_calls: int, static_batch: bool, batch_size, 
-        allow_ffn_pad: bool, use_synthetic_data: bool, bleu_source, bleu_ref, 
-        stop_threshold, vocab_file):
+        export_dir: str,  batch_size, allow_ffn_pad: bool, bleu_source, bleu_ref, 
+        hooks, stop_threshold, vocab_file, num_parallel_calls=True, 
+        static_batch=False, use_synthetic_data=False):
     """Run the transformer train and evaluation.
 
     Args:
@@ -292,9 +292,16 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
         params_set: `base` or `tini`
         data_dir: specific the dataset directory
         model_dir: dir of the model
-        num_parallel_calls: parallel calls num
+        num_parallel_calls: whether parallel call
         batch_size: batch_size
         allow_ffn_pad: bool
+        hooks: The List[str] pass to build a train hook. including 
+            HOOKS = {
+                'loggingtensorhook': get_logging_tensor_hook,
+                'profilerhook': get_profiler_hook,
+                'examplespersecondhook': get_examples_per_second_hook,
+                'loggingmetrichook': get_logging_metric_hook,
+            }
     """
     if params_set == 'base':
         params_ = params.BASE_PARAMS
@@ -313,10 +320,11 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
     params_['batch_size'] = distribution_utils.per_replica_batch_size(
             params_['batch_size'], num_gpus)
 
+    # Caution!!! The arguments are in the params.py
     controler_manager = controler.Controler(
             train_steps=params_['train_steps'], 
             steps_between_evals=params_['steps_between_evals'], 
-            train_epoches=params_['train_epoches'],
+            train_epoches=params_['train_poches'],     # The train steps and train epoches cannot define at same time
             epoches_between_evals=params_['epoches_between_evals'], 
             default_train_epoches=DEFAULT_TRAIN_EPOCHES, 
             batch_size=params_['batch_size'],

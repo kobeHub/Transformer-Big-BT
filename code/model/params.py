@@ -11,12 +11,12 @@ BASE_PARAMS = defaultdict(
         lambda: None,  # default value is None
         
         # input params
-        default_batch_size=1024,
+        default_batch_size=512,
         max_length=256,
 
         # model params
         initializer_gain=1.0,
-        vocab_size=33708,  # todo
+        vocab_size=610390,  # //NOT FINAL
         hidden_size=512,
         num_hidden_layers=6,
         num_head=8,
@@ -27,15 +27,16 @@ BASE_PARAMS = defaultdict(
         attention_dropout=0.1,
         relu_dropout=0.1,
 
-        # train  //todo
+        # train  
         label_smoothing=0.1,
         learning_rate=2.0,
         learning_rate_deacy_rate=1.0,
         lenaring_rate_warmup_steps=16000,
-        train_steps=1000000,
+        train_steps=10000000,
         steps_between_evals=10000,
-        train_epoches=10,
-        epoches_between_evals=2,
+        train_epoches=None,
+        epoches_between_evals=1,
+        
 
         # optimizer
         optimizer_adam_beta1=0.9,

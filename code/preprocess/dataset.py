@@ -160,7 +160,7 @@ def _read_and_batch_from_files(file_pattern: str, batch_size: int,
     return dataset
 
 
-# todo
+#  todo 
 def _generate_synthetic_data(params):
     pass
 
