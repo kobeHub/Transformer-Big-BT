@@ -8,3 +8,5 @@
 *.aux
 *.out
 __pycache__
+saved_model
+exported

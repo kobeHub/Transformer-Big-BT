@@ -19,11 +19,11 @@ BASE_PARAMS = defaultdict(
         vocab_size=610390,  # //NOT FINAL
         hidden_size=512,
         num_hidden_layers=6,
-        num_head=8,
+        num_heads=8,
         filter_size=2048,   # ffn layer dimension
 
         # dropout value
-        layer_postporcess_dropout=0.1,
+        layers_postprocess_dropout=0.1,
         attention_dropout=0.1,
         relu_dropout=0.1,
 
@@ -31,7 +31,7 @@ BASE_PARAMS = defaultdict(
         label_smoothing=0.1,
         learning_rate=2.0,
         learning_rate_deacy_rate=1.0,
-        lenaring_rate_warmup_steps=16000,
+        learning_rate_warmup_steps=16000,
         train_steps=10000000,
         steps_between_evals=10000,
         train_epoches=None,
@@ -41,7 +41,7 @@ BASE_PARAMS = defaultdict(
         # optimizer
         optimizer_adam_beta1=0.9,
         optimizer_adam_beta2=0.997,
-        optimizer_adam_epslion=1e-09,
+        optimizer_adam_epsilon=1e-09,
 
         # predict
         extra_decode_length=50,

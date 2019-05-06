@@ -43,7 +43,7 @@ def position_encoding(length, hidden_size, min_timescale=1.0,
 
 def get_padding(x, padding_value=0):
     """Get float tensor representing the padding of x. which 
-    1 -> nonpading, 1 -> padding.
+    0 -> nonpading, 1 -> padding.
     """
     return tf.cast(tf.equal(x, padding_value), tf.float32)
 

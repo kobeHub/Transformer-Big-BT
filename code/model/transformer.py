@@ -23,7 +23,7 @@ _NEG_NIF = -1e9
 
 
 
-class Transformer:
+class Transformer(object):
     """Transformer model for seq2seq data.
     
     The basic model consists of an encoder and decoder. The input is int sequence
@@ -38,7 +38,7 @@ class Transformer:
         self.embedding_softmax_layer = embedding_layers.EmbeddingSharedWeights(
                 params['vocab_size'], 
                 params['hidden_size'])
-        self.encode_stack = EncoderStack(params, trainable)
+        self.encoder_stack = EncoderStack(params, trainable)
         self.decoder_stack = DecoderStack(params, trainable)
 
 
@@ -71,7 +71,7 @@ class Transformer:
             if target is None:
                 return self.predict(encoder_output, attention_bias)
             else:
-                logits = self.decoder(targets, encoder_outputs. attention_bias)
+                logits = self.decode(targets, encoder_outputs, attention_bias)
                 return logits
 
 
@@ -92,15 +92,16 @@ class Transformer:
             inputs_padding = model_utils.get_padding(inputs)
 
             with tf.name_scope('add_pos_encoding'):
-                length = tf.shape(embeded_inputs)
+                length = tf.shape(inputs)[1]
                 pos_encoding = model_utils.position_encoding(length,
                         self.params['hidden_size'])
                 encoder_inputs = embeded_inputs + pos_encoding
 
             if self.trainable:
                 encoder_inputs = tf.nn.dropout(
-                        encoder_inputs, 1 - self.params['layers_postprocess_dropout'])
+                        encoder_inputs, rate=self.params['layers_postprocess_dropout'])
 
+            print(encoder_inputs)
             return self.encoder_stack(encoder_inputs, attention_bias, inputs_padding)
 
     def decode(self, targets, encoder_outputs, attention_bias):
@@ -127,7 +128,7 @@ class Transformer:
                         self.params['hidden_size'])
             if self.trainable:
                 decoder_inputs =  tf.nn.dropout(decoder_inputs,
-                        1 - self.params['layers_postprocess_dropout'] )
+                        rate=self.params['layers_postprocess_dropout'] )
 
             # Run values
             decoder_self_attention_bias = model_utils.get_decoder_self_attention_bias(length)
@@ -258,7 +259,7 @@ class PrePostProcessingWrapper(object):
         y = self.layer(y, *args, **kwargs)
 
         if self.trainable:
-            y = tf.nn.dropout(y, 1 - self.dropout)
+            y = tf.nn.dropout(y, rate=self.dropout)
         return x + y    # residual link
 
 
@@ -346,7 +347,7 @@ class DecoderStack(tf.layers.Layer):
                     params['num_heads'],
                     params['attention_dropout'],
                     trainable)
-            fnn_ = fnn.FeedForwardNetwork(
+            ffn_ = ffn.FeedForwardNetwork(
                     params['hidden_size'],
                     params['filter_size'],
                     params['relu_dropout'],
@@ -355,7 +356,7 @@ class DecoderStack(tf.layers.Layer):
             self.layers.append([
                 PrePostProcessingWrapper(self_attention_layer, params, trainable),
                 PrePostProcessingWrapper(enc_dec_atten_layer, params, trainable),
-                PrePostProcessingWrapper(fnn_, params, trainable)])
+                PrePostProcessingWrapper(ffn_, params, trainable)])
 
         # Outputs of the decoder satckj
         self.output_normalization = BatchNormalization(params['hidden_size'])

@@ -53,7 +53,7 @@ def pre_data(raw_dir=umcorpus_raw, eval_dir=eval_dir, data_dir=umcorpus_data, sh
     process(raw_dir, eval_dir, data_dir, shuffle)
 
 
-def train(bleu_source, bleu_ref, num_gpus=1, params_set='base', 
+def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=1, params_set='base', 
         data_dir=umcorpus_data, model_dir=model_dir, 
         export_dir=export_dir, batch_size=None, allow_ffn_pad=True, 
         hooks=HOOKS, stop_threshold=15.0, vocab_file=vocab_file):

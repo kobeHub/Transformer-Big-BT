@@ -140,8 +140,8 @@ def get_train_op_and_metrics(loss, params):
         gradients = optimizer.compute_gradients(
                 loss, tvars, colocate_gradients_with_ops=True)
         minimize_op = optimizer.apply_gradients(
-                gradients, global_step=global_step, name='Train')
-        update_op = tf.get_collection(tf.GraphKeys.UP_DATEOPS)
+                gradients, global_step=global_step, name='train')
+        update_op = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         train_ops = tf.group(minimum_op, update_ops)
 
         train_metrics = {'learning_rate': lr}
@@ -210,7 +210,7 @@ def run_loop(estimator, controler_, train_hooks=None, bleu_source=None,
     if evaluate_bleu:
         tf.logging.info('\t3. compute BLEU..')
         if bleu_threshold:
-            tf.logging.info('Repeated above untiil the BLEU score reaches {}'.format(
+            tf.logging.info('Repeated above until the BLEU score reaches {}'.format(
                 bleu_threshold))
     elif not bleu_threshold:
         tf.logging.info('Repeated for {} times...'.format(controler_.train_eval_iterations))
@@ -262,23 +262,20 @@ def run_loop(estimator, controler_, train_hooks=None, bleu_source=None,
 
 
 
-def construct_estimator(model_dir, distribution_strategy, gpu_nums,
-        all_reduce_alg, params, controler_):
+def construct_estimator(model_dir, num_gpus, params):
     """ Construct an estimator.
 
     Args:
-        args for the distribution: distribution_strategy, gpu_nums
+        args for the distribution: distribution_strategy, num_gpus
         all_reduce_alg
     """
     distribution_strategy = distribution_utils.get_distribution_strategy(
-            distribution_strategy=distribution_strategy,
-            num_gpus=num_gpus,
-            all_reduce_alg=all_reduce_alg)
+            num_gpus=num_gpus)
     return tf.estimator.Estimator(
             model_fn=model_fn,
             model_dir=model_dir,
             params=params,
-            config=tf.estimator.RunConfig(train_distribution=distribution_strategy))
+            config=tf.estimator.RunConfig(train_distribute=distribution_strategy))
 
 
 def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: str, 
@@ -316,7 +313,7 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
     params_['use_synthetic_data'] = use_synthetic_data
 
     # Set batch_size depends on the GPU availability
-    params_['batch_size'] = batch_size or params['default_batch_size']
+    params_['batch_size'] = batch_size or params_['default_batch_size']
     params_['batch_size'] = distribution_utils.per_replica_batch_size(
             params_['batch_size'], num_gpus)
 
@@ -330,7 +327,7 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
             batch_size=params_['batch_size'],
             max_length=params_['max_length'])
 
-    params_['repeated_dataset'] = controler_manager.repeated_dataset
+    params_['repeat_dataset'] = controler_manager.repeat_dataset
 
     # Create hooks
     train_hooks = hook_helper.get_train_hooks(
@@ -341,7 +338,7 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
             use_tpu=False)
 
     # Create estimator to train and eval model
-    estimator = construct_estimator(model_dir, params_, controler_manager)
+    estimator = construct_estimator(model_dir, num_gpus, params_)
     # Run loop
     run_loop(
             estimator=estimator, 

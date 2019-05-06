@@ -20,7 +20,7 @@ class Attention(tf.layers.Layer):
         super(Attention, self).__init__()
         self.hidden_size = hidden_size
         self.num_heads = num_heads
-        self.attention_dropout = dropout
+        self.attention_dropout = attention_dropout
         self.train = train
 
         # layers for linearly projecting the queries, keys, values
@@ -104,7 +104,7 @@ class Attention(tf.layers.Layer):
         logits += bias
         weights = tf.nn.softmax(logits, name='attention_weights')
         if self.train:
-            weights = tf.nn.dropout(weights, 1.0 - self.attention_dropout)
+            weights = tf.nn.dropout(weights, rate=self.attention_dropout)
         attention_output = tf.matmul(weights, v)
 
 

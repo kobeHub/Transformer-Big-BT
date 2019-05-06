@@ -15,10 +15,11 @@ class EmbeddingSharedWeights(tf.layers.Layer):
     """Calculate input embeddings and pre-softmax linear with shared weights"""
 
     def __init__(self, vocab_size, hidden_size):
+        super(EmbeddingSharedWeights, self).__init__()
         self.vocab_size = vocab_size
         self.hidden_size = hidden_size
 
-    def build(self):
+    def build(self, _):
         with tf.variable_scope('embedding_and_softmax', reuse=tf.AUTO_REUSE):
             # The initialized weights
             self.shared_weights = tf.get_variable('weights',
@@ -40,7 +41,7 @@ class EmbeddingSharedWeights(tf.layers.Layer):
             mask = tf.cast(tf.not_equal(x, 0), tf.float32)
 
             embeddings = tf.gather(self.shared_weights, x)
-            embeddings *= rd.expand_dims(mask, -1)
+            embeddings *= tf.expand_dims(mask, -1)
             embeddings *= self.hidden_size ** 0.5
 
             return embeddings
