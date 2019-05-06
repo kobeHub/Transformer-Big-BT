@@ -149,13 +149,13 @@ def _read_and_batch_from_files(file_pattern: str, batch_size: int,
     dataset = dataset.filter(lambda x, y: _filter_max_length((x, y), max_length))
 
     if static_batch:
-        dataset = dataset.apply(tf.contrib.data.padded_batch_and_drop_remainder(
+        dataset = dataset.apply(tf.data.Dataset.padded_batch(
             batch_size // max_length, ([max_length], [max_length])))
     else:
         dataset = _batch_examples(dataset, batch_size, max_length)
 
     dataset = dataset.repeat(repeat)
-    dataset = dataset.prefetch(buffer_size=tf.contrib.data.AUTOTUNE)
+    dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     return dataset
 
