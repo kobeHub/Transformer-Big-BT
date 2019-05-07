@@ -68,7 +68,7 @@ class Transformer(object):
             # to continuous representations
             encoder_outputs = self.encode(inputs, attention_bias)
 
-            if target is None:
+            if targets is None:
                 return self.predict(encoder_output, attention_bias)
             else:
                 logits = self.decode(targets, encoder_outputs, attention_bias)
@@ -101,7 +101,6 @@ class Transformer(object):
                 encoder_inputs = tf.nn.dropout(
                         encoder_inputs, rate=self.params['layers_postprocess_dropout'])
 
-            print(encoder_inputs)
             return self.encoder_stack(encoder_inputs, attention_bias, inputs_padding)
 
     def decode(self, targets, encoder_outputs, attention_bias):
