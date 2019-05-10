@@ -22,6 +22,7 @@
 \usepackage{helvet}
  
  
+\usepackage[colorlinks,linkcolor=black, anchorcolor=green, citecolor=black]{hyperref} 
 \usepackage{amsmath, amsfonts, amssymb} % math equations, symbols
 \usepackage[english]{babel}
 \usepackage{color}      % color content
@@ -64,16 +65,22 @@
  
  
  
-\title{\textbf{Simmel的中文小论文}}
-\author{ Simmel \thanks{学号：xx2017xxxx} }
+\title{\textbf{中文模板}}
+\author{ Inno Jia \thanks{Blog: https:kobehub.github.io} }
 \date{\today}
  
 \begin{document}
     \maketitle
  
- 
+\begingroup
+\color{black}
+\renewcommand{\contentsname}{目录}
+\tableofcontents
+\newpage
+\endgroup
+
 \begin{abstract}
-这是一篇中文小论文。这个部分用来写摘要。摘要的章标题默认是英文，还没找到改成中文的方法:(
+这是一篇中文小论文。这个部分用来写\href{https:kobehub.github.io}{\color{blue}摘要}。摘要的章标题默认是英文，还没找到改成中文的方法:(
 \end{abstract}
  
  
