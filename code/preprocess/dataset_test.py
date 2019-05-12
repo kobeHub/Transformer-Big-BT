@@ -15,7 +15,7 @@ class DatasetTest(tf.test.TestCase):
                 'use_synthetic_data': False,
                 'batch_size': 1024,
                 'max_length': 128,
-                'num_parallel_calls': True,
+                'num_parallel_calls': 4,    # The number of files to be processed comcurrently
                 'repeat_dataset': 1,
                 'static_batch': False,
                 'data_dir': DATA_DIR,

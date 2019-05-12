@@ -222,6 +222,7 @@ def run_loop(estimator, controler_, train_hooks=None, bleu_source=None,
     if bleu_threshold:
         controler_.train_eval_iterations = INF
 
+
     for i in range(controler_.train_eval_iterations):
         tf.logging.info('Iteration {}:'.format(i+1))
         
@@ -280,7 +281,7 @@ def construct_estimator(model_dir, num_gpus, params):
 
 def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: str, 
         export_dir: str,  batch_size, allow_ffn_pad: bool, bleu_source, bleu_ref, 
-        hooks, stop_threshold, vocab_file, num_parallel_calls=True, 
+        hooks, stop_threshold, vocab_file, num_parallel_calls: int=4, 
         static_batch=False, use_synthetic_data=False):
     """Run the transformer train and evaluation.
 
@@ -289,7 +290,7 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
         params_set: `base` or `tini`
         data_dir: specific the dataset directory
         model_dir: dir of the model
-        num_parallel_calls: whether parallel call
+        num_parallel_calls: The number of files process concurrently
         batch_size: batch_size
         allow_ffn_pad: bool
         hooks: The List[str] pass to build a train hook. including 
@@ -316,7 +317,7 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
     params_['batch_size'] = batch_size or params_['default_batch_size']
     params_['batch_size'] = distribution_utils.per_replica_batch_size(
             params_['batch_size'], num_gpus)
-
+ 
     # Caution!!! The arguments are in the params.py
     controler_manager = controler.Controler(
             train_steps=params_['train_steps'], 
