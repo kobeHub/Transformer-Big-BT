@@ -98,7 +98,7 @@ def model_fn(features, labels, mode, params):
 
 def record_scalars(metric_dict):
     for k, v in metric_dict.items():
-        tf.contrib.summary.scalar(name=k, tensor=v)
+        tf.contrib.summary.scalar(name=str(k), tensor=v)
 
 
 def get_learning_rate(lr, hidden_size, lr_warmup_steps):
@@ -190,7 +190,7 @@ def _validate_file(filepath):
         raise tf.errors.NotFoundError(None, None, "File %s not found." % filepath)
 
 
-def run_loop(estimator, controler_, train_hooks=None, bleu_source=None, 
+def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None, 
         bleu_ref=None, bleu_threshold=None, vocab_file=None):
     """Train and evaluate loop"""
     if bleu_source:
@@ -223,11 +223,12 @@ def run_loop(estimator, controler_, train_hooks=None, bleu_source=None,
         controler_.train_eval_iterations = INF
 
 
+    my_input_fn = lambda: dataset.train_input_fn(params)
     for i in range(controler_.train_eval_iterations):
         tf.logging.info('Iteration {}:'.format(i+1))
-        
+         
         # Start train 
-        estimator.train(dataset.train_input_fn,
+        estimator.train(input_fn=my_input_fn,
                 steps=controler_.single_iteration_eval_steps,
                 hooks=train_hooks)
 
@@ -343,6 +344,7 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
     # Run loop
     run_loop(
             estimator=estimator, 
+            params=params_,
             controler_=controler_manager, 
             train_hooks=train_hooks, 
             bleu_source=bleu_source, 
