@@ -78,5 +78,5 @@ def get_decoder_self_attention_bias(length):
     with tf.name_scope('decoder_self_attention_bias'):
         valid_locs = tf.matrix_band_part(tf.ones([length, length]), -1, 0)
         valid_locs = tf.reshape(valid_locs, [1, 1, length, length])
-        
+        decoder_bias = _NEG_INF * (1.0 - valid_locs) 
     return decoder_bias

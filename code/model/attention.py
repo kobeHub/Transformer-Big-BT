@@ -110,7 +110,7 @@ class Attention(tf.layers.Layer):
 
         # combine heads
         attention_output = self.combine_heads(attention_output)
-        attention_output = self.output_dense_layer(attention_output)
+        attention_output = self.output_layers(attention_output)
 
         return attention_output
 
