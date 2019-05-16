@@ -59,7 +59,7 @@ class FeedForwardNetwork(tf.layers.Layer):
         output = self.output_dense_layer(output)
 
         if padding is not None:
-            with tf.name_scope("re_add_padding)"):
+            with tf.name_scope("re_add_padding"):
                 output = tf.squeeze(output, axis=0)
                 output = tf.scatter_nd(indices=nonpad_ids,
                         updates=output,

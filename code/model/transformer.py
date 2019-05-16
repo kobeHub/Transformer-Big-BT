@@ -100,8 +100,9 @@ class Transformer(object):
             if self.trainable:
                 encoder_inputs = tf.nn.dropout(
                         encoder_inputs, rate=self.params['layers_postprocess_dropout'])
-        
+
             return self.encoder_stack(encoder_inputs, attention_bias, inputs_padding)
+     
 
     def decode(self, targets, encoder_output, attention_bias):
         """Generate logits for each value in the target sequence.
@@ -135,7 +136,7 @@ class Transformer(object):
                     encoder_output,
                     decoder_self_attention_bias,
                     attention_bias)
-            logits = self.embedding_softmax_layer.linear(output)
+            logits = self.embedding_softmax_layer.linear(outputs)
 
             return logits
 
@@ -271,7 +272,7 @@ class EncoderStack(tf.layers.Layer):
      2. ffn (2-layers)
     """
 
-    def __init_(self, params, trainable):
+    def __init__(self, params, trainable):
         super(EncoderStack, self).__init__()
         self.layers = []
 
@@ -286,7 +287,7 @@ class EncoderStack(tf.layers.Layer):
                     params['filter_size'],
                     params['relu_dropout'],
                     trainable,
-                    param['allow_ffn_pad'])
+                    params['allow_ffn_pad'])
 
             self.layers.append([
                     PrePostProcessingWrapper(self_attention_layer, params, trainable),

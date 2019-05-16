@@ -21,6 +21,7 @@ import os
 import tempfile
 
 import tensorflow as tf
+#from tensorflow.python import debug as tf_debug
 
 from code import compute_bleu
 from code import metrics
@@ -59,6 +60,7 @@ def model_fn(features, labels, mode, params):
         inputs, targets = features, labels
 
         model = transformer.Transformer(params, mode == _TRAIN)
+
         logits = model(inputs, targets)
 
         # Prediction mode, labels are None, output is predictions
@@ -76,6 +78,7 @@ def model_fn(features, labels, mode, params):
         xentropy, weights = metrics.padded_cross_entropy_loss(
                 logits, targets, params['label_smoothing'], params['vocab_size'])
 
+        loss = tf.reduce_sum(xentropy) / tf.reduce_sum(weights)
         # Name the tensor
         tf.identity(loss, 'cross_entropy')
 
@@ -86,14 +89,14 @@ def model_fn(features, labels, mode, params):
                     predictions={'predictions': logits},
                     eval_metric_ops=metrics.get_eval_metrics(logits, labels, params))
         else:
-            train_ops, metric_dict = get_train_op_and_metrics(loss, parmas)
+            train_ops, metric_dict = get_train_op_and_metrics(loss, params)
 
             metric_dict['minibatch_loss'] = loss
             record_scalars(metric_dict)
             return tf.estimator.EstimatorSpec(
                     mode=mode,
                     loss=loss,
-                    train_ops=train_ops)
+                    train_op=train_ops)
 
 
 def record_scalars(metric_dict):
@@ -125,7 +128,7 @@ def get_train_op_and_metrics(loss, params):
         lr = get_learning_rate(
                 params['learning_rate'],
                 params['hidden_size'],
-                params=['learning_rate_warmup_steps'])
+                params['learning_rate_warmup_steps'])
 
         # Use adamoptimizer from tf.contrib which is faster
         optimizer = tf.contrib.opt.LazyAdamOptimizer(
@@ -141,15 +144,15 @@ def get_train_op_and_metrics(loss, params):
                 loss, tvars, colocate_gradients_with_ops=True)
         minimize_op = optimizer.apply_gradients(
                 gradients, global_step=global_step, name='train')
-        update_op = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-        train_ops = tf.group(minimum_op, update_ops)
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        train_ops = tf.group(minimize_op, update_ops)
 
         train_metrics = {'learning_rate': lr}
 
         gradient_norm = tf.global_norm(list(zip(*gradients))[0])
         train_metrics["global_norm/gradient_norm"] = gradient_norm
 
-        return train_op, train_metrics
+        return train_ops, train_metrics
 
 
 def get_gloabl_step(estimator):
@@ -338,6 +341,9 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
             tensors_to_log=TENSORS_TO_LOG,
             batch_size=controler_manager.batch_size,
             use_tpu=False)
+    # Add debug hooks
+    # train_hooks.append(tf_debug.LocalCLIDebugHook())
+
 
     # Create estimator to train and eval model
     estimator = construct_estimator(model_dir, num_gpus, params_)
