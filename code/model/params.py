@@ -17,7 +17,7 @@ BASE_PARAMS = defaultdict(
         # model params
         initializer_gain=1.0,
         vocab_size=610390,  # //NOT FINAL
-        hidden_size=512,    # 512
+        hidden_size=256,    # 512
         num_hidden_layers=6,   # 6
         num_heads=8,
         filter_size=1024,   # ffn layer dimension 2048
