@@ -100,13 +100,8 @@ class Transformer(object):
             if self.trainable:
                 encoder_inputs = tf.nn.dropout(
                         encoder_inputs, rate=self.params['layers_postprocess_dropout'])
-
-        try:
+        
             return self.encoder_stack(encoder_inputs, attention_bias, inputs_padding)
-        except:
-            import pdb
-            #pdb.pm()
-            pdb.post_mortem()
 
     def decode(self, targets, encoder_output, attention_bias):
         """Generate logits for each value in the target sequence.
