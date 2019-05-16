@@ -191,7 +191,7 @@ class Transformer(object):
 
         # Create initial set of IDs that will ne passed into symbols_to_logits_fn
         cache = {
-                f'layer_{layer}': {
+                'layer_{}'.format(layer) : {
                     'k': tf.zeros([batch_size, 0, self.params['hidden_size']]),
                     'v': tf.zeros([batch_size, 0, self.params['hidden_size']]),
                     } for layer in range(self.params['num_hidden_layers'])
@@ -311,7 +311,7 @@ class EncoderStack(tf.layers.Layer):
             self_attention_layer = layer[0]
             ffn_ = layer[1]
 
-            with tf.variable_scope(f'layer_{i}'):
+            with tf.variable_scope('layer_{}'.format(i)):
                 with tf.variable_scope('self_attention'):
                     encoder_inputs = self_attention_layer(encoder_inputs, attention_bias)
                 with tf.variable_scope('ffn'):
@@ -387,7 +387,7 @@ class DecoderStack(tf.layers.Layer):
             ffn_ = layer[2]
 
             # Run inputs through layers
-            layer_name = f'layer_{i}'
+            layer_name = 'layer_{}'.format(i)
             layer_cache = cache[layer_name] if cache else None
 
             with tf.variable_scope(layer_name):

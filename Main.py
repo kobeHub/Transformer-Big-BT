@@ -54,7 +54,7 @@ def pre_data(raw_dir=umcorpus_raw, eval_dir=eval_dir, data_dir=umcorpus_data, sh
     process(raw_dir, eval_dir, data_dir, shuffle)
 
 
-def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=1, params_set='base', 
+def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=2, params_set='base', 
         data_dir=umcorpus_data, model_dir=model_dir, 
         export_dir=export_dir, batch_size=None, allow_ffn_pad=True, 
         hooks=HOOKS, stop_threshold=15.0, vocab_file=vocab_file):
@@ -72,8 +72,8 @@ def translate(text=None, inputs_file=None, output_file=None, args=args_translate
 
 def params_num(ckpt_dir):
     num = get_params_num(ckpt_dir)
-    tf.logging.info(f'\n\nThe number of all parameters is: {num}')
-    tf.logging.info(f'Total size: {8*num} byte')
+    tf.logging.info('\n\nThe number of all parameters is: {}'.format(num))
+    tf.logging.info('Total size: {} byte'.format(8*num))
 
 
 if __name__ == '__main__':

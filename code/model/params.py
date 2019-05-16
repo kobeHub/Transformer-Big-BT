@@ -11,16 +11,16 @@ BASE_PARAMS = defaultdict(
         lambda: None,  # default value is None
         
         # input params
-        default_batch_size=1,  # 512
+        default_batch_size=512,  # 512
         max_length=256,
 
         # model params
         initializer_gain=1.0,
         vocab_size=610390,  # //NOT FINAL
-        hidden_size=16,    # 512
-        num_hidden_layers=3,   # 6
+        hidden_size=512,    # 512
+        num_hidden_layers=6,   # 6
         num_heads=8,
-        filter_size=64,   # ffn layer dimension 2048
+        filter_size=1024,   # ffn layer dimension 2048
 
         # dropout value
         layers_postprocess_dropout=0.1,
