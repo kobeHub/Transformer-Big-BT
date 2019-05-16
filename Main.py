@@ -26,6 +26,7 @@ eval_dir = os.path.join(umcorpus_raw, 'data/Testing')
 umcorpus_data = os.path.join(BASE_DIR, 'data/UMcorpus/processed')
 model_dir = os.path.join(BASE_DIR, 'saved_model')
 export_dir = os.path.join(BASE_DIR, 'exported')
+graphs_dir = os.path.join(BASE_DIR, 'graphs')
 
 vocab_file = os.path.join(umcorpus_data, 'vocab.ende.610390')
 bleu_source = os.path.join(umcorpus_data, 'bleu_source.txt')
@@ -60,7 +61,7 @@ def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=1, params_set=
     print('Begin to train and eval Transformer model...')
     
     run_transformaer(num_gpus=num_gpus, params_set=params_set, data_dir=data_dir, 
-            model_dir=model_dir, export_dir=export_dir, batch_size=batch_size, 
+            model_dir=model_dir, export_dir=export_dir, graphs_dir=graphs_dir, batch_size=batch_size, 
             allow_ffn_pad=allow_ffn_pad, bleu_source=bleu_source, bleu_ref=bleu_ref, 
         hooks=hooks, stop_threshold=stop_threshold, vocab_file=vocab_file)
 
