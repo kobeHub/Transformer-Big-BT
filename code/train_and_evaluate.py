@@ -44,7 +44,7 @@ _EVAL = tf.estimator.ModeKeys.EVAL
 _PREDICT = tf.estimator.ModeKeys.PREDICT
 
 DEFAULT_TRAIN_EPOCHES = 10
-INF = int(1e9)
+INF = int(1e15)
 BLEU_DIR = 'bleu'
 
 # Directory contains tensors that are logged by logging hooks
@@ -235,6 +235,9 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
                 steps=controler_.single_iteration_eval_steps,
                 hooks=train_hooks)
 
+        # Romove old graphs
+        check_graph_files(graphs_dir, 5)
+
         eval_results = estimator.evaluate(input_fn=dataset.eval_input_fn,
                 steps=controler_.single_iteration_eval_steps)
 
@@ -276,11 +279,22 @@ def construct_estimator(model_dir, num_gpus, params):
     """
     distribution_strategy = distribution_utils.get_distribution_strategy(
             num_gpus=num_gpus)
+
+    # Allow GPU growth
+    sess_config = tf.ConfigProto(
+            inter_op_parallelism_threads=0,
+            intra_op_parallelism_threads=0,
+            allow_soft_placement=True)
+    sess_config.gpu_options.allow_growth = True
+    sess_config.gpu_options.allocator_type = 'BFC'
+
     return tf.estimator.Estimator(
             model_fn=model_fn,
             model_dir=model_dir,
             params=params,
-            config=tf.estimator.RunConfig(train_distribute=distribution_strategy))
+            config=tf.estimator.RunConfig(
+                train_distribute=distribution_strategy,
+                session_config=sess_config))
 
 
 def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: str, 
@@ -369,3 +383,10 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
                 strip_default_attrs=True)
 
 
+def check_graph_files(graphs_dir, num):
+    """Ensure the number of graphs files is less than num"""
+    files = [os.path.abspath(os.path.join(graphs_dir, x)) for x in os.listdir(graphs_dir)]
+    files = sorted(files, key=lambda x: os.path.getmtime(x))
+
+    while len(files) > num:
+        os.remove(files.pop(0))

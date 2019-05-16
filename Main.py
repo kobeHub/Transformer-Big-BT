@@ -18,7 +18,7 @@ from code.preprocess.pre_data import process
 from code.train_and_evaluate import run_transformaer
 from code.translate import translate_main
 from code.train_and_evaluate import run_transformaer
-
+from code.params_num import get_params_num
 
 # Define default dir args
 umcorpus_raw = os.path.join(BASE_DIR, 'data/UMcorpus/RAW')
@@ -68,6 +68,12 @@ def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=1, params_set=
 
 def translate(text=None, inputs_file=None, output_file=None, args=args_translate_cli):
     translate_main(text, inputs_file, output_file, args)
+
+
+def params_num(ckpt_dir):
+    num = get_params_num(ckpt_dir)
+    tf.logging.info(f'\n\nThe number of all parameters is: {num}')
+    tf.logging.info(f'Total size: {8*num} byte')
 
 
 if __name__ == '__main__':
