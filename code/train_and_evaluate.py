@@ -137,6 +137,12 @@ def get_train_op_and_metrics(loss, params):
                 beta2=params['optimizer_adam_beta2'],
                 epsilon=params['optimizer_adam_epsilon'])
 
+        # Use automatic mixed presicion FP16 training on GPU
+        if params['dtype'] == 'fp16':
+            optimizer = tf.train.experimental.enable_mixed_precision_graph_rewrite(
+                    optimizer
+                    )
+
         # Get and apply gradients
         global_step = tf.train.get_global_step()
         tvars = tf.trainable_variables()
