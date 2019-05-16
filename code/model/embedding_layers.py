@@ -32,7 +32,7 @@ class EmbeddingSharedWeights(tf.layers.Layer):
         """Get token embeddings of x
         
         Args: 
-            x: input int64 tensor shape [batch_size, length]
+            x: input int32 tensor shape [batch_size, length]
         @r:
             embeddings: float32 tensor with shape [batch_size, length, hidden_size]
         """

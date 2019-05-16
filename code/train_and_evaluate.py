@@ -281,20 +281,19 @@ def construct_estimator(model_dir, num_gpus, params):
             num_gpus=num_gpus)
 
     # Allow GPU growth
-    sess_config = tf.ConfigProto(
-            inter_op_parallelism_threads=0,
-            intra_op_parallelism_threads=0,
-            allow_soft_placement=True)
-    sess_config.gpu_options.allow_growth = True
-    sess_config.gpu_options.allocator_type = 'BFC'
+    #sess_config = tf.ConfigProto(
+    #        inter_op_parallelism_threads=0,
+    #        intra_op_parallelism_threads=0,
+    #        allow_soft_placement=True)
+    #sess_config.gpu_options.allow_growth = True
+    #sess_config.gpu_options.allocator_type = 'BFC'
 
     return tf.estimator.Estimator(
             model_fn=model_fn,
             model_dir=model_dir,
             params=params,
             config=tf.estimator.RunConfig(
-                train_distribute=distribution_strategy,
-                session_config=sess_config))
+                train_distribute=distribution_strategy))
 
 
 def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: str, 
