@@ -30,7 +30,7 @@ def _get_sorted_inputs(file_path: str):
         inputs = [line.strip() for line in f.readlines()]
 
     inputs_len = [(i, len(it)) for i, it in enumerate(inputs)]
-    sorted_len = sorted(inputs_len, lambda x: x[1], reverse=True)
+    sorted_len = sorted(inputs_len, key=lambda x: x[1], reverse=True)
 
     sorted_inputs = [None] * len(inputs_len)
     sorted_keys = [0] * len(inputs_len)

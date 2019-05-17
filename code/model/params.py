@@ -32,8 +32,8 @@ BASE_PARAMS = defaultdict(
         learning_rate=2.0,
         learning_rate_deacy_rate=1.0,
         learning_rate_warmup_steps=16000,
-        train_steps=10000000,
-        steps_between_evals=10000,
+        train_steps=100000,
+        steps_between_evals=500,
         train_epoches=None,
         epoches_between_evals=1,
         

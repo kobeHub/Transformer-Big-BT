@@ -182,7 +182,7 @@ def train_input_fn(params):
 
 def eval_input_fn(params):
     """Load and return dataset for eval"""
-    file_pattern = os.path.join(params["data_dir"] or "", "*dev*")
+    file_pattern = os.path.join(params["data_dir"] or "", "*eval*")
     if params["use_synthetic_data"]:
         return _generate_synthetic_data(params)
     return _read_and_batch_from_files(

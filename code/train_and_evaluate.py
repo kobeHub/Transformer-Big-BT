@@ -173,11 +173,11 @@ def translate_and_compute_bleu(estimator, tokenizer_, bleu_source, bleu_ref):
     # translate into tmp file 
     translate.translate_file(
             estimator, tokenizer_, bleu_source, output_file=tmp_name,
-            print_all_translations=False)
+            print_all=False)
 
-    uncased_score = compute_bleu.bleu_wrapper(bleu_ref, tmp_filename, False)
-    cased_score = compute_bleu.bleu_wrapper(bleu_ref, tmp_filename, True)
-    os.remove(tmp_filename)
+    uncased_score = compute_bleu.bleu_wrapper(bleu_ref, tmp_name, False)
+    cased_score = compute_bleu.bleu_wrapper(bleu_ref, tmp_name, True)
+    os.remove(tmp_name)
     return uncased_score, cased_score
 
 
@@ -232,24 +232,25 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
         controler_.train_eval_iterations = INF
 
 
-    my_input_fn = lambda: dataset.train_input_fn(params)
+    train_input_fn = lambda: dataset.train_input_fn(params)
+    eval_input_fn = lambda: dataset.eval_input_fn(params)
     for i in range(controler_.train_eval_iterations):
         tf.logging.info('Iteration {}:'.format(i+1))
-         
+        
         # Start train 
-        estimator.train(input_fn=my_input_fn,
-                steps=controler_.single_iteration_eval_steps,
-                hooks=train_hooks)
+        #estimator.train(input_fn=train_input_fn,
+        #        steps=controler_.single_iteration_train_steps,
+        #        hooks=train_hooks)
 
         # Romove old graphs
-        check_graph_files(model_dir, 5)
+        # check_graph_files(model_dir, 5)
 
-        eval_results = estimator.evaluate(input_fn=dataset.eval_input_fn,
-                steps=controler_.single_iteration_eval_steps)
+        #eval_results = estimator.evaluate(input_fn=eval_input_fn,
+        #        steps=controler_.single_iteration_eval_steps)
 
-        tf.logging.info('Evalution results (iter {}/{})'.format(
-            i+1, controler_.train_eval_iterations))
-        tf.logging.info(eval_results)
+        #tf.logging.info('Evalution results (iter {}/{})'.format(
+        #    i+1, controler_.train_eval_iterations))
+        #tf.logging.info(eval_results)
 
         # predict
         if evaluate_bleu:
@@ -259,8 +260,10 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
                     bleu_ref,
                     vocab_file)
 
+            tf.logging.info('uncased_score:', uncased_score)
+            tf.logging.info('cased_score:', cased_score)
             # Write actual bleu scores using summary writer
-            global_step = get_global_step(estimator)
+            global_step = tf.train.get_global_step(estimator)
             summary = tf.Summary(value=[
                 tf.Summary.Value(tag="bleu/uncased", simple_value=uncased_score),
                 tf.Summary.Value(tag="bleu/cased", simple_value=cased_score),
@@ -273,6 +276,8 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
                 tf.logging.info('The BLEU score just passed the thresholds.')
                 writer.close()
                 break
+
+        os._exit(0)
 
 
 

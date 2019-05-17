@@ -71,5 +71,8 @@ class Controler(object):
                     NUM_EXAMPLES[_TRAIN])
         return self._single_iteration_train_epoches
 
+    def show(self):
+        print(self.train_eval_iterations)
+        print(self.single_iteration_train_steps)
 
 

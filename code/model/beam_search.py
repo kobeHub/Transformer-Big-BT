@@ -405,12 +405,12 @@ def sequence_beam_search(
 
 
 def _log_prob_from_logits(logits):
-  return logits - tf.reduce_logsumexp(logits, axis=2, keep_dims=True)
+  return logits - tf.reduce_logsumexp(logits, axis=2, keepdims=True)
 
 
 def _length_normalization(alpha, length):
   """Return length normalization factor."""
-  return tf.pow(((5. + tf.to_float(length)) / 6.), alpha)
+  return tf.pow(((5. + tf.cast(length, tf.float32)) / 6.), alpha)
 
 
 def _expand_to_beam_size(tensor, beam_size):
