@@ -69,7 +69,7 @@ class Transformer(object):
             encoder_outputs = self.encode(inputs, attention_bias)
 
             if targets is None:
-                return self.predict(encoder_output, attention_bias)
+                return self.predict(encoder_outputs, attention_bias)
             else:
                 logits = self.decode(targets, encoder_outputs, attention_bias)
                 return logits
