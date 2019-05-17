@@ -23,7 +23,7 @@ class _StateKeys:
     # as finished and moved to FINISHED_SEQ tensor
     ALIVE_SEQ = 'ALIVE_SEQ'                     # shape [batch_size, beam_size, CUR_INDEX + 1]
     ALIVE_SEQ_PROBS = 'ALIVE_SEQ_PROBS'
-
+    ALIVE_LOG_PROBS = "ALIVE_LOG_PROBS"
     # Dict for cached values for each alive seq. The cache stroes 
     # the encoder output, attention bias, decoder attention output
     # from the previous iteration
@@ -46,10 +46,11 @@ class _StateKeys:
 
 class SequenceBeamSearch:
     def __init__(self, symbols_to_logits_fn, vocab_size, batch_size,
-            alpha, max_decode_length, eos_id):
+            beam_size, alpha, max_decode_length, eos_id):
         self.symbols_to_logits_fn = symbols_to_logits_fn
         self.vocab_size = vocab_size
         self.batch_size = batch_size
+        self.beam_size = beam_size
         self.alpha = alpha
         self.max_decode_length = max_decode_length
         self.eos_id = eos_id
@@ -340,7 +341,7 @@ class SequenceBeamSearch:
         # 
         finished_state = tf.while_loop(self._continue_search, 
                 self._search_step, loop_vars=[state],
-                shape_invariant=[state_shapes], parallel_iterations=1,
+                shape_invariants=[state_shapes], parallel_iterations=1,
                 back_prop=False)
         finished_state = finished_state[0]
     
