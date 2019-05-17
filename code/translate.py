@@ -42,7 +42,7 @@ def _get_sorted_inputs(file_path: str):
 
 
 def _encode_and_add_eos(line, tokenizer_):
-    return tokenizer_.encode(line) + [tokenizer_.EOS_ID]
+    return tokenizer_.encode(line) + [tokenizer.EOS_ID]
 
 
 def _trim_and_decode(ids, tokenizer_):
@@ -97,7 +97,7 @@ def translate_text(estimator, tokenizer_, txt):
     encoded_txt = _encode_and_add_eos(txt, tokenizer_)
 
     def input_fn():
-        ds = tf.data.Dataset.from_tensor(encoded_txt)
+        ds = tf.data.Dataset.from_tensors(encoded_txt)
         ds = ds.batch(_DECODE_BATCH_SIZE)
         return ds
 
@@ -140,7 +140,7 @@ def translate_main(text: str=None, inputs_file: str=None, output_file: str=None,
     params_['extra_decode_length'] = _EXTRA_DECODE_LENGTH
     params_['batch_size'] = _DECODE_BATCH_SIZE
 
-    estimator = tf.estimator.Estimator(model_fn=mode_fn,
+    estimator = tf.estimator.Estimator(model_fn=model_fn,
             model_dir=args['model_dir'],
             params=params_)
 

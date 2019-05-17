@@ -242,7 +242,7 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
                 hooks=train_hooks)
 
         # Romove old graphs
-        check_graph_files(graphs_dir, 5)
+        check_graph_files(model_dir, 5)
 
         eval_results = estimator.evaluate(input_fn=dataset.eval_input_fn,
                 steps=controler_.single_iteration_eval_steps)
@@ -303,7 +303,7 @@ def construct_estimator(model_dir, num_gpus, params):
 
 
 def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: str, 
-        export_dir: str, graphs_dir: str, batch_size, allow_ffn_pad: bool, bleu_source, bleu_ref, 
+        export_dir: str, batch_size, allow_ffn_pad: bool, bleu_source, bleu_ref, 
         hooks, stop_threshold, vocab_file, num_parallel_calls: int=4, 
         static_batch=False, use_synthetic_data=False):
     """Run the transformer train and evaluation.
@@ -356,7 +356,7 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
     # Create hooks
     train_hooks = hook_helper.get_train_hooks(
             hooks,
-            model_dir=graphs_dir,
+            model_dir=model_dir,
             tensors_to_log=TENSORS_TO_LOG,
             batch_size=controler_manager.batch_size,
             use_tpu=False)
