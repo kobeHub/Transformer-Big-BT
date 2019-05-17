@@ -68,7 +68,7 @@ def model_fn(features, labels, mode, params):
             return tf.estimator.EstimatorSpec(
                     mode=mode,
                     predictions=logits,
-                    export_output={
+                    export_outputs={
                         "translate": tf.estimator.export.PredictOutput(logits)
                         })
 

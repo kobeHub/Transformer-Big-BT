@@ -109,7 +109,7 @@ class Tokenizer:
         type_ = 'zh' to decode Chinese
         """
         if isinstance(token_ids, np.ndarray):
-            token_ids = token_ids.toList()
+            token_ids = token_ids.tolist()
         if not token_ids:
             return ''
 

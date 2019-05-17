@@ -47,7 +47,7 @@ def _encode_and_add_eos(line, tokenizer_):
 
 def _trim_and_decode(ids, tokenizer_):
     try:
-        index = list(ids).index(tokenizer_.EOS_ID)
+        index = list(ids).index(tokenizer.EOS_ID)
         return tokenizer_.decode(ids[:index])
     except ValueError:
         return tokenizer_.decode(ids)
@@ -155,8 +155,7 @@ def translate_main(text: str=None, inputs_file: str=None, output_file: str=None,
 
     if output_file:
         tf.logging.info('The results will be in {}'.format(output_file))
-
-    translate_file(estimator, tokenizer_, inputs_file, output_file)
+        translate_file(estimator, tokenizer_, inputs_file, output_file)
     
 
 

@@ -174,7 +174,7 @@ class Transformer(object):
                     cache.get('encoder_decoder_attention_bias'),
                     cache)
             logits = self.embedding_softmax_layer.linear(decoder_outputs)
-            logits.squeeze(logits, axis=[1])
+            logits = tf.squeeze(logits, axis=[1])
             return logits, cache
         return symbols_to_logits_fn
 
