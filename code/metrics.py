@@ -20,10 +20,12 @@ def _pad_tensors_to_same_length(x, y):
     y_length = tf.shape(y)[1]
 
     # max_length = tf.maximum(x_length, y_length)
-    if y_length > x_length:
-        x = tf.pad(x, [[0, 0], [0, max_length - x_length], [0, 0]])
-    elif x_length > y_length:
-        y = tf.pad(y, [[0, 0], [0, max_length - y_length]])
+    x = tf.cond(y_length > x_length, 
+                lambda: tf.pad(x, [[0, 0], [0, y_length - x_length], [0, 0]]),
+                lambda: x)
+    y = tf.cond(x_length > y_length, 
+        lambda: tf.pad(y, [[0, 0], [0, x_length - y_length]]),
+        lambda: y)
     return x, y
 
 

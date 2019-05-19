@@ -260,8 +260,8 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
                     bleu_ref,
                     vocab_file)
 
-            tf.logging.info('uncased_score:', uncased_score)
-            tf.logging.info('cased_score:', cased_score)
+            # tf.logging.info('uncased_score:{}'.format(uncased_score))
+            # tf.logging.info('cased_score:{}'.format(cased_score))
             # Write actual bleu scores using summary writer
             global_step = get_global_step(estimator)
             summary = tf.Summary(value=[
@@ -277,7 +277,7 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
                 writer.close()
                 break
 
-        os._exit(0)
+        
 
 
 
