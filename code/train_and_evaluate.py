@@ -161,9 +161,9 @@ def get_train_op_and_metrics(loss, params):
         return train_ops, train_metrics
 
 
-def get_gloabl_step(estimator):
+def get_global_step(estimator):
     """The last ckeckpoint"""
-    return int(estimator.lastest_checkpoint().split('-')[-1])
+    return int(estimator.latest_checkpoint().split('-')[-1])
 
 
 def translate_and_compute_bleu(estimator, tokenizer_, bleu_source, bleu_ref):
@@ -238,19 +238,19 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
         tf.logging.info('Iteration {}:'.format(i+1))
         
         # Start train 
-        #estimator.train(input_fn=train_input_fn,
-        #        steps=controler_.single_iteration_train_steps,
-        #        hooks=train_hooks)
+        estimator.train(input_fn=train_input_fn,
+                steps=controler_.single_iteration_train_steps,
+                hooks=train_hooks)
 
         # Romove old graphs
         # check_graph_files(model_dir, 5)
 
-        #eval_results = estimator.evaluate(input_fn=eval_input_fn,
-        #        steps=controler_.single_iteration_eval_steps)
+        eval_results = estimator.evaluate(input_fn=eval_input_fn,
+                steps=controler_.single_iteration_eval_steps)
 
-        #tf.logging.info('Evalution results (iter {}/{})'.format(
-        #    i+1, controler_.train_eval_iterations))
-        #tf.logging.info(eval_results)
+        tf.logging.info('Evalution results (iter {}/{})'.format(
+            i+1, controler_.train_eval_iterations))
+        tf.logging.info(eval_results)
 
         # predict
         if evaluate_bleu:
@@ -263,7 +263,7 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
             tf.logging.info('uncased_score:', uncased_score)
             tf.logging.info('cased_score:', cased_score)
             # Write actual bleu scores using summary writer
-            global_step = tf.train.get_global_step(estimator)
+            global_step = get_global_step(estimator)
             summary = tf.Summary(value=[
                 tf.Summary.Value(tag="bleu/uncased", simple_value=uncased_score),
                 tf.Summary.Value(tag="bleu/cased", simple_value=cased_score),
@@ -354,7 +354,8 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
             epoches_between_evals=params_['epoches_between_evals'], 
             default_train_epoches=DEFAULT_TRAIN_EPOCHES, 
             batch_size=params_['batch_size'],
-            max_length=params_['max_length'])
+            max_length=params_['max_length'],
+            eval_step=params_['eval_step'])
 
     params_['repeat_dataset'] = controler_manager.repeat_dataset
 

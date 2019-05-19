@@ -24,7 +24,7 @@ class Controler(object):
     """
     
     def __init__(self, train_steps, steps_between_evals, train_epoches,
-            epoches_between_evals, default_train_epoches, batch_size,
+            epoches_between_evals, eval_step, default_train_epoches, batch_size,
             max_length):
         if train_steps and train_epoches:
             raise ValueError('Both train_steps and train_epoches are defined!')
@@ -33,6 +33,7 @@ class Controler(object):
             self.train_eval_iterations = train_steps // steps_between_evals
             self._single_iteration_train_steps = steps_between_evals
             self._single_iteration_train_epoches = epoches_between_evals
+            self._eval_step = eval_step
         else:
             train_poches = train_epoches or default_train_epoches
             self.train_eval_iterations = train_epoches // epoches_between_evals
@@ -53,7 +54,7 @@ class Controler(object):
 
     @property
     def single_iteration_eval_steps(self):
-        return None
+        return self._eval_step
 
 
     @property
