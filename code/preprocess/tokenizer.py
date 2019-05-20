@@ -67,7 +67,7 @@ class Tokenizer:
 
 
     @staticmethod
-    def vocab_from_files(vocab_file: str, files: List[str],
+    def vocab_from_files(vocab_file: str, files: List[str], add: bool,
             reserved_tokens=RESERVED_TOKENS):
         """Initializing subtoken vocabulary from files and save vocab in `vocab_file`
 
@@ -76,16 +76,29 @@ class Tokenizer:
             files: List of files to generate vocab
             reserved_tokens: RESERVED_TOKENS
         """
-        if tf.gfile.Exists(vocab_file):
+        if tf.gfile.Exists(vocab_file) and not add:
             tf.logging.info('Vocab file {} already exists!!'.format(vocab_file))
-        else:
-            tf.logging.info('Generating vocab from files...')
+        elif not tf.gfile.Exists(vocab_file):
+            tf.logging.info('Generating vocabulary from files...')
             counts = _count_tokens(files)
             token_list = list(counts.keys())
             tf.logging.info('Created vocab with {} tokens.'.format(
                 len(token_list)))
             vocab_file += str(len(token_list))
             _save_vocab(vocab_file, token_list)
+        else:
+            tf.logging.info('Adding vocabulary from files...')
+            lens = vocab_file.split('.')[-1]
+            counts = _count_tokens(files)
+            old_tokens = _load_vocab_file(vocab_file, reserved_tokens)
+            add_tokens = list(counts.keys())
+            token_list = list(set(old_tokens + add_tokens))
+
+            tf.logging.info('Append vocab from {} to {} tokens'.format(
+                lens, len(token_list)))
+            vocab_file = '.'.join(vocab_file.split('.')[:-1]) + str(len(token_list))
+            _save_vocab(vocab_file, token_list)
+            
         return Tokenizer(vocab_file)
 
     def encode(self, raw_string: str, add_eos=False) -> List[int]:

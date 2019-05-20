@@ -24,13 +24,16 @@ from code.params_num import get_params_num
 umcorpus_raw = os.path.join(BASE_DIR, 'data/UMcorpus/RAW')
 eval_dir = os.path.join(umcorpus_raw, 'data/Testing')
 umcorpus_data = os.path.join(BASE_DIR, 'data/UMcorpus/processed')
+multiun_raw = os.path.join(BASE_DIR, 'data/MultiUN/RAW')
+processed_data = os.path.join(BASE_DIR, 'data/processed')
+
 model_dir = os.path.join(BASE_DIR, 'saved_model')
 export_dir = os.path.join(BASE_DIR, 'exported')
 graphs_dir = os.path.join(BASE_DIR, 'graphs')
 
-vocab_file = os.path.join(umcorpus_data, 'vocab.ende.610390')
-bleu_source = os.path.join(umcorpus_data, 'bleu_source.txt')
-bleu_ref = os.path.join(umcorpus_data, 'bleu_ref.txt')
+vocab_file = os.path.join(processed_data, 'vocab.ende.610390')
+bleu_source = os.path.join(processed_data, 'bleu_source.txt')
+bleu_ref = os.path.join(processed_data, 'bleu_ref.txt')
 
 
 # Define hooks 
@@ -49,9 +52,12 @@ def usage_test(name: str='') -> None:
     basic_usage(name)
 
 
-def pre_data(raw_dir=umcorpus_raw, eval_dir=eval_dir, data_dir=umcorpus_data, shuffle=True) -> None:
-    print('Run data preprocess...')
-    process(raw_dir, eval_dir, data_dir, shuffle)
+def pre_data(corpus: str, data_dir=processed_data, shuffle=True) -> None:
+    print('Run data preprocess for corpus {}'.format(corpus))
+    if corpus == 'umcorpus':
+        process(True, umcorpus_raw, eval_dir, data_dir, shuffle, False)
+    elif corpus == 'multiun':
+        process(False, multiun_raw, None, data_dir, shuffle, True)
 
 
 def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=2, params_set='base', 

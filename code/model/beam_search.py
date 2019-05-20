@@ -49,6 +49,14 @@ class SequenceBeamSearch(object):
 
   def __init__(self, symbols_to_logits_fn, vocab_size, batch_size,
                beam_size, alpha, max_decode_length, eos_id):
+    """
+    Args:
+        symbols_to_logits_fn: decoding function that calculates logits of the next tokens
+        vocab_size:
+        batch_size:
+        beam_size: the size of beam
+        alpha: The arg of length normalization to avoid generating short sequence.  
+    """
     self.symbols_to_logits_fn = symbols_to_logits_fn
     self.vocab_size = vocab_size
     self.batch_size = batch_size
