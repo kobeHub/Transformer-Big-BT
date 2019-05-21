@@ -42,7 +42,7 @@ _NUM_EVAL = 1
 
 def text_line_iterator(path: str) -> Iterator:
     """Iterate through lines in a file"""
-    with tf.gfile.Open(path) as f:
+    with open(path, errors='ignore') as f:
         for line in f:
             yield line
 
@@ -248,7 +248,7 @@ def vocab_exist(dir_name):
     return ''
 
 
-def process(merged: bool, raw_dir: str, eval_dir: str, data_dir: int, 
+def process(merged: bool, raw_dir: str, eval_dir: str, data_dir: int, name: str,
         shuffle: bool, append_vocab: bool):
     """Get the input data for transformer model. Entry of the 2 type corpus files. 
     
@@ -259,6 +259,7 @@ def process(merged: bool, raw_dir: str, eval_dir: str, data_dir: int,
         data_dir: the output processed data directory
         shuffle: shuffle or not
         append_vocab: append the vocabulary based on the raw_files or not
+        name: the name of corpus 
     """
     safe_mkdir(data_dir)
 
@@ -317,7 +318,7 @@ def process(merged: bool, raw_dir: str, eval_dir: str, data_dir: int,
         # after merge
         assert len(train_files) == 2
         tf.logging.info('\t2. Tokenizer and save data as TFRecord')
-        start = time()
+        start = time.time()
         if 'en' in train_files[0]:
             source_input = train_files[0]
             target_input = train_files[1]

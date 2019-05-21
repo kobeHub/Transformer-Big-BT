@@ -55,9 +55,9 @@ def usage_test(name: str='') -> None:
 def pre_data(corpus: str, data_dir=processed_data, shuffle=True) -> None:
     print('Run data preprocess for corpus {}'.format(corpus))
     if corpus == 'umcorpus':
-        process(True, umcorpus_raw, eval_dir, data_dir, shuffle, False)
+        process(True, umcorpus_raw, eval_dir, data_dir, 'umcorpus', shuffle, False)
     elif corpus == 'multiun':
-        process(False, multiun_raw, None, data_dir, shuffle, True)
+        process(False, multiun_raw, None, data_dir, 'multiun', shuffle, False)
 
 
 def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=2, params_set='base', 

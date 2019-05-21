@@ -90,13 +90,19 @@ class Tokenizer:
             tf.logging.info('Adding vocabulary from files...')
             lens = vocab_file.split('.')[-1]
             counts = _count_tokens(files)
-            old_tokens = _load_vocab_file(vocab_file, reserved_tokens)
+            tf.logging.info('The number of tokens in the files {}'.format(len(counts)))
+            old_tokens = _load_vocab_file(vocab_file, [])
             add_tokens = list(counts.keys())
-            token_list = list(set(old_tokens + add_tokens))
+            new_tokens = old_tokens + add_tokens
+            new_dict = collections.defaultdict(int)
+
+            for token in new_tokens:
+                new_dict[token] += 1
+            token_list = list(new_dict.keys())
 
             tf.logging.info('Append vocab from {} to {} tokens'.format(
                 lens, len(token_list)))
-            vocab_file = '.'.join(vocab_file.split('.')[:-1]) + str(len(token_list))
+            vocab_file = '.'.join(vocab_file.split('.')[:-1]) + '.' + str(len(token_list))
             _save_vocab(vocab_file, token_list)
             
         return Tokenizer(vocab_file)
@@ -236,10 +242,12 @@ def _count_tokens(files: List[str]) -> Dict[str, int]:
     in the samples. The samples are semi-evenly distributed across the file.
     """
     token_counts = collections.defaultdict(int)
-
+    
     for file_path in files:
-        with tf.gfile.Open(file_path, mode='r') as f:
-            for line in f.readlines():
+        with open(file_path, errors='ignore') as f:
+            for i, line in enumerate(f.readlines()):
+                if i > 0 and i % 100000 == 0:
+                    tf.logging.info('\t{} lines has been processed..'.format(i+1))
                 for token in _split_string_to_tokens(line):
                     token_counts[token] += 1
 
