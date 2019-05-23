@@ -76,7 +76,7 @@ def pre_data(corpus: str, data_dir=processed_data, shuffle=True) -> None:
         process(False, wmtcasict15_raw, None, data_dir, 'wmtcasict15', shuffle, True, _SMALL_TRAIN)
 
 def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=2, params_set='big', 
-        data_dir=umcorpus_data, model_dir=model_dir_v1, 
+        data_dir=processed_data, model_dir=model_dir_v1, 
         export_dir=export_dir, batch_size=None, allow_ffn_pad=True, 
         hooks=HOOKS, stop_threshold=0.15, vocab_file=vocab_file):
     print('Begin to train and eval Transformer model...')
