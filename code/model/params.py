@@ -50,6 +50,13 @@ BASE_PARAMS = defaultdict(
         alpha=0.6,
         )
 
+BIG_PARAMS = BASE_PARAMS.copy()
+BIG_PARAMS.update(
+        vocab_size=1132998,
+        hidden_size=128,
+        )
+
+
 TINY_PARAMS = BASE_PARAMS.copy()
 TINY_PARAMS.update(
     default_batch_size=256,

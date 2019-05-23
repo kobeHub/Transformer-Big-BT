@@ -249,7 +249,7 @@ def vocab_exist(dir_name):
 
 
 def process(merged: bool, raw_dir: str, eval_dir: str, data_dir: int, name: str,
-        shuffle: bool, append_vocab: bool):
+        shuffle: bool, append_vocab: bool, num_train: int):
     """Get the input data for transformer model. Entry of the 2 type corpus files. 
     
     Args:
@@ -319,14 +319,17 @@ def process(merged: bool, raw_dir: str, eval_dir: str, data_dir: int, name: str,
         assert len(train_files) == 2
         tf.logging.info('\t2. Tokenizer and save data as TFRecord')
         start = time.time()
-        if 'en' in train_files[0]:
+        if 'en' == train_files[0].split('/')[-1].split('.')[-1]:
             source_input = train_files[0]
             target_input = train_files[1]
-        elif 'zh' in train_files[1]:
+        else:
             source_input = train_files[1]
             target_input = train_files[0]
+
+        tf.logging.info('\t The source raw file {}, target raw file {}'.format(source_input, 
+            target_input))
         train_tfrecord= encode_and_save(tokenizer_, 
-                source_input, target_input, data_dir, name, _TRAIN_TAG, _NUM_TRAIN)
+                source_input, target_input, data_dir, name, _TRAIN_TAG, num_train)
         tf.logging.info('\tUsing time {:.2f}s'.format(time.time() - start))
 
         

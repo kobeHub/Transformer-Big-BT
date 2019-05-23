@@ -4,7 +4,7 @@ from dataset import train_input_fn, eval_input_fn
 
 import os 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DATA_DIR = os.path.join(BASE_DIR, 'data/UMcorpus/processed')
+DATA_DIR = os.path.join(BASE_DIR, 'data/tmp')
 VOCAB_FILE = os.path.join(DATA_DIR, 'vocab.ende.610390')
 
 
