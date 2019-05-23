@@ -331,6 +331,8 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
     """
     if params_set == 'base':
         params_ = params.BASE_PARAMS
+    elif params_set == 'big':
+        params_ = params.BIG_PARAMS
     else:
         params_ = params.TINY_PARAMS
 

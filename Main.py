@@ -47,9 +47,9 @@ HOOKS = ['loggingtensorhook', 'loggingmetrichook', 'profilerhook']
 
 # args for translate cli 
 args_translate_cli = {
-        'params_set': 'base',
+        'params_set': 'big',
         'vocab_file': vocab_file,
-        'model_dir': model_dir}
+        'model_dir': model_dir_v1}
 
 
 # Train file number
@@ -75,7 +75,7 @@ def pre_data(corpus: str, data_dir=processed_data, shuffle=True) -> None:
     elif corpus == 'wmtcasict15':
         process(False, wmtcasict15_raw, None, data_dir, 'wmtcasict15', shuffle, True, _SMALL_TRAIN)
 
-def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=2, params_set='base', 
+def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=2, params_set='big', 
         data_dir=umcorpus_data, model_dir=model_dir_v1, 
         export_dir=export_dir, batch_size=None, allow_ffn_pad=True, 
         hooks=HOOKS, stop_threshold=0.15, vocab_file=vocab_file):

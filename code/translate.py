@@ -132,6 +132,8 @@ def translate_main(text: str=None, inputs_file: str=None, output_file: str=None,
 
     if args['params_set'] == 'base':
         params_ = params.BASE_PARAMS
+    elif params_set == 'big':
+        params_ = params.BIG_PARAMS
     else:
         params_ = params.TINY_PARAMS
 
