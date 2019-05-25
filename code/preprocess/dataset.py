@@ -16,8 +16,8 @@ import tensorflow as tf
 
 
 # Buffer size for reading records from TFRecord files. Each training file is
-# 4.9M
-_READ_RECORD_BUFFER = 5 * 1000 * 1000
+# 11M
+_READ_RECORD_BUFFER = 12 * 1000 * 1000
 
 # Examples grouping constants. Defines length boundaries for each group.
 _MIN_BOUNDARY = 8
