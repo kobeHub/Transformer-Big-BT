@@ -81,11 +81,7 @@ def translate_file(estimator, tokenizer_, input_file, output_file=None,
         translations.append(trans)
 
         if print_all:
-<<<<<<< HEAD
             tf.logging.info('Translating:\n\tsource: {}\n\t target: {}'.format(
-=======
-            tf.logging.info('Translating:\n\tsource: {}\n\ttarget: {}'.format(
->>>>>>> e349e75fddaa1d139fe864a32ac66fd21c3874c3
                 sorted_inputs[i], trans))
 
     if output_file:
