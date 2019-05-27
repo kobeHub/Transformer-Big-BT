@@ -104,7 +104,7 @@ def translate_text(estimator, tokenizer_, txt):
     predictions = estimator.predict(input_fn)
     translation = next(predictions)['outputs']
     translation = _trim_and_decode(translation, tokenizer_)
-    tf.logging.info('Translating:\n\tsource: {}\n\target: {}'.format(
+    tf.logging.info('Translating:\n\tsource: {}\n\ttarget: {}'.format(
         txt, translation))
 
 
