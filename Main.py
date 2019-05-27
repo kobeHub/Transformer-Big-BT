@@ -41,7 +41,7 @@ graphs_dir = os.path.join(DATA_DIR, 'graphs')
 vocab_file_v0 = os.path.join(umcorpus_data, 'vocab.ende.610390')
 vocab_file_v1 = os.path.join(processed_data, 'vocab.ende.1132998')   # todo
 bleu_source = os.path.join(processed_data, 'bleu_source.txt')
-bleu_ref = os.path.join(processed_data, 'bleu_ref.txt')
+bleu_ref = os.path.join(processed_data, 'bleu_target.txt')
 
 
 # Define hooks 
