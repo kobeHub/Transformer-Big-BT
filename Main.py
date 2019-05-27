@@ -11,6 +11,7 @@ sys.path.append('..')
 
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = '/data/gradstu/Transformer'
 
 import tensorflow as tf
 
@@ -31,12 +32,14 @@ wmtcasia15_raw = os.path.join(BASE_DIR, 'data/WMT18/casia2015')
 wmtcasict15_raw = os.path.join(BASE_DIR, 'data/WMT18/casict2015')
 
 
-model_dir_v0 = os.path.join(BASE_DIR, 'saved_model')
-model_dir_v1 = os.path.join(BASE_DIR, 'saved_model_v1')
-export_dir = os.path.join(BASE_DIR, 'exported')
-graphs_dir = os.path.join(BASE_DIR, 'graphs')
+model_dir_v0 = os.path.join(DATA_DIR, 'saved_model')
+model_dir_v1 = os.path.join(DATA_DIR, 'saved_model_v1')
+export_dir = os.path.join(DATA_DIR, 'exported')
+graphs_dir = os.path.join(DATA_DIR, 'graphs')
 
-vocab_file = os.path.join(processed_data, 'vocab.ende.1132998')   # todo
+
+vocab_file_v0 = os.path.join(umcorpus_data, 'vocab.ende.610390')
+vocab_file_v1 = os.path.join(processed_data, 'vocab.ende.1132998')   # todo
 bleu_source = os.path.join(processed_data, 'bleu_source.txt')
 bleu_ref = os.path.join(processed_data, 'bleu_ref.txt')
 
@@ -46,10 +49,17 @@ HOOKS = ['loggingtensorhook', 'loggingmetrichook', 'profilerhook']
 
 
 # args for translate cli 
-args_translate_cli = {
+args_translate_big = {
         'params_set': 'big',
-        'vocab_file': vocab_file,
+        'vocab_file': vocab_file_v1,
         'model_dir': model_dir_v1}
+
+# args for base
+args_translate_base = {
+        'params_set': 'base',
+        'vocab_file': vocab_file_v0,
+        'model_dir': model_dir_v0,
+        }
 
 
 # Train file number
@@ -75,19 +85,32 @@ def pre_data(corpus: str, data_dir=processed_data, shuffle=True) -> None:
     elif corpus == 'wmtcasict15':
         process(False, wmtcasict15_raw, None, data_dir, 'wmtcasict15', shuffle, True, _SMALL_TRAIN)
 
-def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=2, params_set='big', 
-        data_dir=processed_data, model_dir=model_dir_v1, 
+def train(bleu_source=bleu_source, bleu_ref=bleu_source, num_gpus=2, params_set='base', 
+        data_dir=None, model_dir=None, 
         export_dir=export_dir, batch_size=None, allow_ffn_pad=True, 
-        hooks=HOOKS, stop_threshold=0.15, vocab_file=vocab_file):
+        hooks=HOOKS, stop_threshold=0.15, vocab_file=None):
     print('Begin to train and eval Transformer model...')
     
+    if params_set == 'base':
+        data_dir = umcorpus_data
+        model_dir = model_dir_v0
+        vocab_file = vocab_file_v0
+    else:
+        data_dir = processed_data
+        model_dir = model_dir_v1
+        vocab_file = vocab_file_v1
+
     run_transformaer(num_gpus=num_gpus, params_set=params_set, data_dir=data_dir, 
             model_dir=model_dir, export_dir=export_dir, batch_size=batch_size, 
             allow_ffn_pad=allow_ffn_pad, bleu_source=bleu_source, bleu_ref=bleu_ref, 
         hooks=hooks, stop_threshold=stop_threshold, vocab_file=vocab_file)
 
 
-def translate(text=None, inputs_file=None, output_file=None, args=args_translate_cli):
+def translate(text=None, inputs_file=None, output_file=None, args='base'):
+    if args == 'base':
+        args = args_translate_base
+    else:
+        args = args_translate_big
     translate_main(text, inputs_file, output_file, args)
 
 
