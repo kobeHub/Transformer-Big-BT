@@ -30,7 +30,7 @@ def _get_sorted_inputs(file_path: str):
         inputs = [line.strip() for line in f.readlines()]
 
     inputs_len = [(i, len(it)) for i, it in enumerate(inputs)]
-    sorted_len = sorted(inputs_len, lambda x: x[1], reverse=True)
+    sorted_len = sorted(inputs_len, key=lambda x: x[1], reverse=True)
 
     sorted_inputs = [None] * len(inputs_len)
     sorted_keys = [0] * len(inputs_len)
@@ -42,12 +42,12 @@ def _get_sorted_inputs(file_path: str):
 
 
 def _encode_and_add_eos(line, tokenizer_):
-    return tokenizer_.encode(line) + [tokenizer_.EOS_ID]
+    return tokenizer_.encode(line) + [tokenizer.EOS_ID]
 
 
 def _trim_and_decode(ids, tokenizer_):
     try:
-        index = list(ids).index(tokenizer_.EOS_ID)
+        index = list(ids).index(tokenizer.EOS_ID)
         return tokenizer_.decode(ids[:index])
     except ValueError:
         return tokenizer_.decode(ids)
@@ -81,7 +81,11 @@ def translate_file(estimator, tokenizer_, input_file, output_file=None,
         translations.append(trans)
 
         if print_all:
-            tf.logging.info('Translating:\n\tsource: {}\n\target: {}'.format(
+<<<<<<< HEAD
+            tf.logging.info('Translating:\n\tsource: {}\n\t target: {}'.format(
+=======
+            tf.logging.info('Translating:\n\tsource: {}\n\ttarget: {}'.format(
+>>>>>>> e349e75fddaa1d139fe864a32ac66fd21c3874c3
                 sorted_inputs[i], trans))
 
     if output_file:
@@ -97,14 +101,14 @@ def translate_text(estimator, tokenizer_, txt):
     encoded_txt = _encode_and_add_eos(txt, tokenizer_)
 
     def input_fn():
-        ds = tf.data.Dataset.from_tensor(encoded_txt)
+        ds = tf.data.Dataset.from_tensors(encoded_txt)
         ds = ds.batch(_DECODE_BATCH_SIZE)
         return ds
 
     predictions = estimator.predict(input_fn)
     translation = next(predictions)['outputs']
     translation = _trim_and_decode(translation, tokenizer_)
-    tf.logging.info('Translating:\n\tsource: {}\n\target: {}'.format(
+    tf.logging.info('Translating:\n\tsource: {}\n\ttarget: {}'.format(
         txt, translation))
 
 
@@ -132,6 +136,8 @@ def translate_main(text: str=None, inputs_file: str=None, output_file: str=None,
 
     if args['params_set'] == 'base':
         params_ = params.BASE_PARAMS
+    elif args['params_set'] == 'big':
+        params_ = params.BIG_PARAMS
     else:
         params_ = params.TINY_PARAMS
 
@@ -140,7 +146,7 @@ def translate_main(text: str=None, inputs_file: str=None, output_file: str=None,
     params_['extra_decode_length'] = _EXTRA_DECODE_LENGTH
     params_['batch_size'] = _DECODE_BATCH_SIZE
 
-    estimator = tf.estimator.Estimator(model_fn=mode_fn,
+    estimator = tf.estimator.Estimator(model_fn=model_fn,
             model_dir=args['model_dir'],
             params=params_)
 
@@ -155,8 +161,7 @@ def translate_main(text: str=None, inputs_file: str=None, output_file: str=None,
 
     if output_file:
         tf.logging.info('The results will be in {}'.format(output_file))
-
-    translate_file(estimator, tokenizer_, inputs_file, output_file)
+        translate_file(estimator, tokenizer_, inputs_file, output_file)
     
 
 

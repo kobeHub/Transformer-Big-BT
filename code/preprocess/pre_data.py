@@ -42,7 +42,7 @@ _NUM_EVAL = 1
 
 def text_line_iterator(path: str) -> Iterator:
     """Iterate through lines in a file"""
-    with tf.gfile.Open(path) as f:
+    with open(path, errors='ignore') as f:
         for line in f:
             yield line
 
@@ -77,8 +77,9 @@ def get_raw_files(raw_dir: str, excepts: List['str']=None) -> List[str]:
     abs_dir = os.path.abspath(raw_dir)
     for r, _, f in os.walk(raw_dir):
         if f:
-            if not excepts or f[0] not in excepts:
-                yield os.path.join(r, f[0])
+            for item in f:
+                if not excepts or item not in excepts:
+                    yield os.path.join(r, item)
 
 
 def split_bleu_file(test_file: str, source_path: str, target_path: str):
@@ -117,19 +118,24 @@ def merge_umcorpus(raw_dir: str, output_file: str) -> int:
 ##################################################################
 # Data encode
 ##################################################################
-def encode_and_save(tokenizer, input_file, output_dir, tag, 
+def encode_and_save(tokenizer, source_input, target_input, output_dir, name, tag, 
         output_nums) -> List[str]:
-    """Encode data in TFRecord format and save in multi files
-    
+    """Encode data from one file in TFRecord format and save in multi files
+     
+      Apply to corpus:
+            UMcorpus: merged file given by source_input and target_input is None
+            MultiUN, OpenSubtitles, WMT18: source_input and target_input are given
+
         Args:
             tokenizer: Subtokenizer object to encode the raw string
             raw_files: The raw files
             output_dir: The directory to write out the examples
+            name: the name of the corpus
             tag: Output files tag 
             output_nums: The num of the output files
         :r  all files that product
     """
-    outputs_path = [shared_file_name(output_dir, _UMCORPUS, tag, i+1, output_nums)
+    outputs_path = [shared_file_name(output_dir, name, tag, i+1, output_nums)
             for i in range(output_nums)]
 
     if all_exist(outputs_path):
@@ -142,25 +148,43 @@ def encode_and_save(tokenizer, input_file, output_dir, tag,
     
     counter, shared = 0, 0
     buffer_dict = {}
-    for counter, line in enumerate(text_line_iterator(input_file)):
-        if counter > 0 and counter % 100000 == 0:
-            tf.logging.info('\tSaving case %d.' % (counter/2))
-        if counter % 2 == 0:
-            buffer_dict['inputs'] = tokenizer.encode(line, add_eos=True)
-        else:
-            buffer_dict['targets'] = tokenizer.encode(line, add_eos=True)
-            example = dict_to_example(buffer_dict)
+
+    if target_input is None:
+        # For UMcorpus
+        for counter, line in enumerate(text_line_iterator(source_input)):
+            if counter > 0 and counter % 100000 == 0:
+                tf.logging.info('\tSaving case %d.' % (counter/2))
+            if counter % 2 == 0:
+                buffer_dict['inputs'] = tokenizer.encode(line, add_eos=True)
+            else:
+                buffer_dict['targets'] = tokenizer.encode(line, add_eos=True)
+                example = dict_to_example(buffer_dict)
+                writers[shared].write(example.SerializeToString())
+                shared = (shared + 1) % output_nums
+    else:
+        # For MultiUN
+        for counter, (s_line, t_line) in enumerate(zip(
+            text_line_iterator(source_input), text_line_iterator(target_input))):
+            if counter > 0 and counter % 100000 == 0:
+                tf.logging.info('\tSaving case {}'.format(counter))
+            example = dict_to_example({'inputs': tokenizer.encode(s_line, add_eos=True),
+                'targets': tokenizer.encode(t_line, add_eos=True)})
             writers[shared].write(example.SerializeToString())
             shared = (shared + 1) % output_nums
+
     for writer in writers:
         writer.close()
 
     for tmp_name, final_name in zip(tmp_files, outputs_path):
         tf.gfile.Rename(tmp_name, final_name)
 
-    tf.logging.info('Saved {} examples'.format((counter + 1) // 2))
-    return outputs_path
 
+    if target_input:
+        tf.logging.info('Saved {} examples'.format(counter + 1))
+    else:
+        tf.logging.info('Saved {} examples'.format((counter + 1) // 2))
+    return outputs_path
+ 
 
 
 def shared_file_name(path, vocab, tag, num, total_num) -> str:
@@ -220,58 +244,98 @@ def all_exist(files: List[str]) -> bool:
 def vocab_exist(dir_name):
     for f in os.listdir(dir_name):
         if 'vocab.ende' in f:
-            return f
+            return os.path.join(dir_name, f)
     return ''
 
 
-def process(raw_dir: str, eval_dir: str, data_dir: int, shuffle: bool):
-    """Get the input data for transformer model."""
+def process(merged: bool, raw_dir: str, eval_dir: str, data_dir: int, name: str,
+        shuffle: bool, append_vocab: bool, num_train: int):
+    """Get the input data for transformer model. Entry of the 2 type corpus files. 
+    
+    Args:
+        merged: true for the UMcorpus; false for the MultiUN, OpenSubtitles, WMT18
+        raw_dir: raw files 
+        eval_files: None if there is no eval_files
+        data_dir: the output processed data directory
+        shuffle: shuffle or not
+        append_vocab: append the vocabulary based on the raw_files or not
+        name: the name of corpus 
+    """
     safe_mkdir(data_dir)
 
     tf.logging.info('Prepare data for input.....')
     # Create vocab
-    tf.logging.info('1. Create tokenizer and build vocab..')
+    tf.logging.info('\t1. Create tokenizer and build vocab..')
     start = time.time()
     train_files = list(get_raw_files(raw_dir, ['Testing-Data.txt', 'Readme.txt']))
-    eval_files = list(get_raw_files(eval_dir))
-    vocab_files = train_files + eval_files
     
-    vocab_file = os.path.join(data_dir, 'vocab.ende.')
+    if eval_dir:
+        eval_files = list(get_raw_files(eval_dir))
+        vocab_files = train_files + eval_files
+    else:
+        vocab_files = train_files
 
+    tf.logging.info('\t The vocab files:{}'.format(vocab_files))
     done_vocab = vocab_exist(data_dir)
-    if done_vocab:
+    if done_vocab and not append_vocab:
         tokenizer_ = tokenizer.Tokenizer(os.path.join(data_dir, done_vocab))
     else:
+        tf.logging.info('\tusing the existed vocab: {}'.format(done_vocab))
         tokenizer_ = tokenizer.Tokenizer.vocab_from_files(
-            vocab_file, vocab_files)
+            done_vocab, vocab_files, append_vocab)
     tf.logging.info('Using time {:.2f}s'.format(time.time() - start))
 
-    tf.logging.info('2. Merge all train file into one')
-    MERGED_NAME = os.path.join(data_dir, 'merged_raw.txt')
-    if not os.path.exists(MERGED_NAME):
+    if merged:
+        tf.logging.info('\t2. Merge all train file into one')
+        MERGED_NAME = os.path.join(data_dir, 'merged_raw.txt')
+        if not os.path.exists(MERGED_NAME):
+            start = time.time()
+            lines = merge_umcorpus(raw_dir, MERGED_NAME)
+            tf.logging.info('The merged file has {} lines'.format(lines))
+            tf.logging.info('Using time {:.2f}s'.format(time.time() - start))
+        else:
+            tf.logging.info('The merged file already exists.')
+
+    
+        tf.logging.info('\t3. Tokenizer and save data as TFRecord format')
         start = time.time()
-        lines = merge_umcorpus(raw_dir, MERGED_NAME)
-        tf.logging.info('The merged file has {} lines'.format(lines))
+        train_tfrecord = encode_and_save(tokenizer_,
+                MERGED_NAME, None, data_dir, name, _TRAIN_TAG, _NUM_TRAIN)
+        eval_tfrecord = encode_and_save(tokenizer_,
+                eval_files[0], None, data_dir, name, _EVAL_TAG, _NUM_EVAL)
         tf.logging.info('Using time {:.2f}s'.format(time.time() - start))
+
+        tf.logging.info('\4. Split test file into source file and target file.')
+        source_path = os.path.join(data_dir, 'bleu_source.txt')
+        target_path = os.path.join(data_dir, 'bleu_target.txt')
+        split_bleu_file(eval_files[0], source_path, target_path)
+        tf.logging.info('\tWrite into {}, {}'.format(source_path, target_path))
     else:
-        tf.logging.info('The merged file already exists.')
+        if len(train_files) > 2:
+            tf.logging.info('The Raw files are too much, merged them')
+            # todo for WMT18
+        
+        # after merge
+        assert len(train_files) == 2
+        tf.logging.info('\t2. Tokenizer and save data as TFRecord')
+        start = time.time()
+        if 'en' == train_files[0].split('/')[-1].split('.')[-1]:
+            source_input = train_files[0]
+            target_input = train_files[1]
+        else:
+            source_input = train_files[1]
+            target_input = train_files[0]
 
-    tf.logging.info('3. Tokenizer and save data as TFRecord format')
-    start = time.time()
-    train_tfrecord = encode_and_save(tokenizer_,
-            MERGED_NAME, data_dir, _TRAIN_TAG, _NUM_TRAIN)
-    eval_tfrecord = encode_and_save(tokenizer_,
-            eval_files[0], data_dir, _EVAL_TAG, _NUM_EVAL)
-    tf.logging.info('Using time {:.2f}s'.format(time.time() - start))
+        tf.logging.info('\t The source raw file {}, target raw file {}'.format(source_input, 
+            target_input))
+        train_tfrecord= encode_and_save(tokenizer_, 
+                source_input, target_input, data_dir, name, _TRAIN_TAG, num_train)
+        tf.logging.info('\tUsing time {:.2f}s'.format(time.time() - start))
 
-    tf.logging.info('4. Split test file into source file and target file.')
-    source_path = os.path.join(data_dir, 'bleu_source.txt')
-    target_path = os.path.join(data_dir, 'bleu_target.txt')
-    split_bleu_file(eval_files[0], source_path, target_path)
-    tf.logging.info('\tWrite into {}, {}'.format(source_path, target_path))
+        
 
     if shuffle:
-        tf.logging.info('\t5. Shuffle the train data')
+        tf.logging.info('\tLast: Shuffle the train data')
         start = time.time()
         for fname in train_tfrecord:
             shuffle_record(fname)

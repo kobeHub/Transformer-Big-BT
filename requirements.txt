@@ -40,7 +40,7 @@ ipython==7.4.0
 ipython-genutils==0.2.0
 ipywidgets==7.4.2
 jedi==0.13.3
-Jinja2==2.10
+Jinja2>=2.10
 jsonschema==2.6.0
 jupyter==1.0.0
 jupyter-client==5.2.4
@@ -106,7 +106,6 @@ python-libtorrent==1.1.12
 python-xapp==1.4.0
 pytz==2018.9
 pyxdg==0.26
-PyYAML==3.13
 pyzmq==18.0.1
 qtconsole==4.4.3
 ranger-fm==1.9.2

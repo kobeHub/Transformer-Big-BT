@@ -67,7 +67,7 @@ class Tokenizer:
 
 
     @staticmethod
-    def vocab_from_files(vocab_file: str, files: List[str],
+    def vocab_from_files(vocab_file: str, files: List[str], add: bool,
             reserved_tokens=RESERVED_TOKENS):
         """Initializing subtoken vocabulary from files and save vocab in `vocab_file`
 
@@ -76,16 +76,35 @@ class Tokenizer:
             files: List of files to generate vocab
             reserved_tokens: RESERVED_TOKENS
         """
-        if tf.gfile.Exists(vocab_file):
+        if tf.gfile.Exists(vocab_file) and not add:
             tf.logging.info('Vocab file {} already exists!!'.format(vocab_file))
-        else:
-            tf.logging.info('Generating vocab from files...')
+        elif not tf.gfile.Exists(vocab_file):
+            tf.logging.info('Generating vocabulary from files...')
             counts = _count_tokens(files)
             token_list = list(counts.keys())
             tf.logging.info('Created vocab with {} tokens.'.format(
                 len(token_list)))
             vocab_file += str(len(token_list))
             _save_vocab(vocab_file, token_list)
+        else:
+            tf.logging.info('Adding vocabulary from files...')
+            lens = vocab_file.split('.')[-1]
+            counts = _count_tokens(files)
+            tf.logging.info('The number of tokens in the files {}'.format(len(counts)))
+            old_tokens = _load_vocab_file(vocab_file, [])
+            add_tokens = list(counts.keys())
+            new_tokens = old_tokens + add_tokens
+            new_dict = collections.defaultdict(int)
+
+            for token in new_tokens:
+                new_dict[token] += 1
+            token_list = list(new_dict.keys())
+
+            tf.logging.info('Append vocab from {} to {} tokens'.format(
+                lens, len(token_list)))
+            vocab_file = '.'.join(vocab_file.split('.')[:-1]) + '.' + str(len(token_list))
+            _save_vocab(vocab_file, token_list)
+            
         return Tokenizer(vocab_file)
 
     def encode(self, raw_string: str, add_eos=False) -> List[int]:
@@ -109,7 +128,7 @@ class Tokenizer:
         type_ = 'zh' to decode Chinese
         """
         if isinstance(token_ids, np.ndarray):
-            token_ids = token_ids.toList()
+            token_ids = token_ids.tolist()
         if not token_ids:
             return ''
 
@@ -223,10 +242,12 @@ def _count_tokens(files: List[str]) -> Dict[str, int]:
     in the samples. The samples are semi-evenly distributed across the file.
     """
     token_counts = collections.defaultdict(int)
-
+    
     for file_path in files:
-        with tf.gfile.Open(file_path, mode='r') as f:
-            for line in f.readlines():
+        with open(file_path, errors='ignore') as f:
+            for i, line in enumerate(f.readlines()):
+                if i > 0 and i % 100000 == 0:
+                    tf.logging.info('\t{} lines has been processed..'.format(i+1))
                 for token in _split_string_to_tokens(line):
                     token_counts[token] += 1
 
