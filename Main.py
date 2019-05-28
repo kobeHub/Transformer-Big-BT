@@ -107,12 +107,12 @@ def train(bleu_source=bleu_source, bleu_ref=bleu_ref, num_gpus=2, params_set='bi
         hooks=hooks, stop_threshold=stop_threshold, vocab_file=vocab_file)
 
 
-def translate(text=None, inputs_file=None, output_file=None, args='base'):
+def translate(inter=False,text=None, inputs_file=None, output_file=None, args='base'):
     if args == 'base':
         args = args_translate_base
     else:
         args = args_translate_big
-    translate_main(text, inputs_file, output_file, args)
+    translate_main(inter, text, inputs_file, output_file, args)
 
 
 def params_num(ckpt_dir):

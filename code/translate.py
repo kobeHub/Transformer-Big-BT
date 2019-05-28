@@ -93,7 +93,7 @@ def translate_file(estimator, tokenizer_, input_file, output_file=None,
                 f.write('{}\n'.format(translations[i]))
 
 
-def translate_text(estimator, tokenizer_, txt):
+def translate_sentence(estimator, tokenizer_, txt):
     encoded_txt = _encode_and_add_eos(txt, tokenizer_)
 
     def input_fn():
@@ -104,12 +104,27 @@ def translate_text(estimator, tokenizer_, txt):
     predictions = estimator.predict(input_fn)
     translation = next(predictions)['outputs']
     translation = _trim_and_decode(translation, tokenizer_)
+    return translation
+
+
+def translate_text(estimator, tokenizer_, txt):
+    translation = translate_sentence(estimator, tokenizer_, txt)
     tf.logging.info('Translating:\n\tsource: {}\n\ttarget: {}'.format(
         txt, translation))
 
 
+def translate_interactive(estimator, tokenizer_):
+    """Load the model and translate interactively until meet the end symbol"""
+    while True:
+        tf.logginf.info("Enter the English sentence end with ENTER.")
+        raw_text = input().strip()
+        if raw_text == r'\q':
+            break
+        target = translate_sentence(estimator, tokenizer_, raw_text)
+        tf.logging.info('\t{}'.format(target))
 
-def translate_main(text: str=None, inputs_file: str=None, output_file: str=None, args=None):
+
+def translate_main(interactive, text: str=None, inputs_file: str=None, output_file: str=None, args=None):
     """Translating entrance for CLI usage. 
     
     Args:
@@ -145,6 +160,10 @@ def translate_main(text: str=None, inputs_file: str=None, output_file: str=None,
     estimator = tf.estimator.Estimator(model_fn=model_fn,
             model_dir=args['model_dir'],
             params=params_)
+
+    if interactive:
+        translate_interactive(estimator, tokenizer_)
+        return
 
     if text:
         tf.logging.info('Translating text: {}'.format(text))
