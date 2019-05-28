@@ -119,7 +119,10 @@ def translate_interactive(estimator, tokenizer_):
         if raw_text == r'\q':
             predictor.close()
             break
+        encoded_txt = _encode_and_add_eos(raw_text, tokenizer_)
         target = predictor.predict(raw_text)
+        target = next(target)['outpus']
+        target = _trim_and_decode(target, tokenizer_)
         tf.logging.info('\t{}'.format(target))
 
 
