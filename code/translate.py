@@ -120,8 +120,8 @@ def translate_interactive(estimator, tokenizer_):
             predictor.close()
             break
         encoded_txt = _encode_and_add_eos(raw_text, tokenizer_)
-        target = predictor.predict(raw_text)
-        target = next(target)['outpus']
+        target = predictor.predict(encoded_txt)
+        target = next(target)['outputs']
         target = _trim_and_decode(target, tokenizer_)
         tf.logging.info('\t{}'.format(target))
 
@@ -209,7 +209,7 @@ class ContinuePredict:
 
 def continue_input_fn(generator):
     def _inner_input():
-        dataset = tf.data.Dataset.from_generator(generator)
+        dataset = tf.data.Dataset.from_generator(generator, tf.int32, tf.TensorShape([None]))
         dataset = dataset.batch(_DECODE_BATCH_SIZE)
         return dataset
     return _inner_input
