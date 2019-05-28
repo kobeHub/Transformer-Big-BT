@@ -138,7 +138,7 @@ def translate_main(interactive, text: str=None, inputs_file: str=None, output_fi
     from code.model import params
     from code.train_and_evaluate import model_fn
 
-    if not text and not inputs_file:
+    if not interactive and not text and not inputs_file:
         tf.logging.warn('There is nothing to translate!')
         return
    
