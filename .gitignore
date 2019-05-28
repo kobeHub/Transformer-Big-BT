@@ -8,8 +8,8 @@
 *.aux
 *.out
 __pycache__
-saved_model
+saved_model*
 exported
 graphs
-data.tar*
+data.tar.*
 log

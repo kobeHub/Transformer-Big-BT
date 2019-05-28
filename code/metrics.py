@@ -10,6 +10,7 @@ import math
 
 import numpy as np
 import tensorflow as tf
+import six
 
 
 def _pad_tensors_to_same_length(x, y):
@@ -18,10 +19,13 @@ def _pad_tensors_to_same_length(x, y):
     x_length = tf.shape(x)[1]
     y_length = tf.shape(y)[1]
 
-    max_length = tf.maximum(x_length, y_length)
-
-    x = tf.pad(x, [[0, 0], [0, max_length - x_length], [0, 0]])
-    y = tf.pad(y, [[0, 0], [0, max_length - y_length]])
+    # max_length = tf.maximum(x_length, y_length)
+    x = tf.cond(y_length > x_length, 
+                lambda: tf.pad(x, [[0, 0], [0, y_length - x_length], [0, 0]]),
+                lambda: x)
+    y = tf.cond(x_length > y_length, 
+        lambda: tf.pad(y, [[0, 0], [0, x_length - y_length]]),
+        lambda: y)
     return x, y
 
 
@@ -172,7 +176,7 @@ def bleu_score(logits, labels):
   """
   predictions = tf.cast(tf.argmax(logits, axis=-1), tf.float32)
   # TODO: Look into removing use of py_func
-  bleu = tf.py_func(compute_bleu, (labels, predictions), tf.float32)
+  bleu = tf.py_function(compute_bleu, (labels, predictions), tf.float32)
   return bleu, tf.constant(1.0)
 
 
@@ -270,7 +274,7 @@ def rouge_2_fscore(logits, labels):
   """
   predictions = tf.cast(tf.argmax(logits, axis=-1), tf.int32)
   # TODO: Look into removing use of py_func
-  rouge_2_f_score = tf.py_func(rouge_n, (predictions, labels), tf.float32)
+  rouge_2_f_score = tf.py_function(rouge_n, (predictions, labels), tf.float32)
   return rouge_2_f_score, tf.constant(1.0)
 
 
@@ -338,7 +342,7 @@ def rouge_l_fscore(predictions, labels):
     rouge_l_fscore: approx rouge-l f1 score.
   """
   outputs = tf.cast(tf.argmax(predictions, axis=-1), tf.int32)
-  rouge_l_f_score = tf.py_func(rouge_l_sentence_level, (outputs, labels),
+  rouge_l_f_score = tf.py_function(rouge_l_sentence_level, (outputs, labels),
                                tf.float32)
   return rouge_l_f_score, tf.constant(1.0)
 

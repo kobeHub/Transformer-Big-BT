@@ -68,7 +68,7 @@ def model_fn(features, labels, mode, params):
             return tf.estimator.EstimatorSpec(
                     mode=mode,
                     predictions=logits,
-                    export_output={
+                    export_outputs={
                         "translate": tf.estimator.export.PredictOutput(logits)
                         })
 
@@ -137,6 +137,12 @@ def get_train_op_and_metrics(loss, params):
                 beta2=params['optimizer_adam_beta2'],
                 epsilon=params['optimizer_adam_epsilon'])
 
+        # Use automatic mixed presicion FP16 training on GPU
+        if params['dtype'] == 'fp16':
+            optimizer = tf.train.experimental.enable_mixed_precision_graph_rewrite(
+                    optimizer
+                    )
+
         # Get and apply gradients
         global_step = tf.train.get_global_step()
         tvars = tf.trainable_variables()
@@ -155,9 +161,9 @@ def get_train_op_and_metrics(loss, params):
         return train_ops, train_metrics
 
 
-def get_gloabl_step(estimator):
+def get_global_step(estimator):
     """The last ckeckpoint"""
-    return int(estimator.lastest_checkpoint().split('-')[-1])
+    return int(estimator.latest_checkpoint().split('-')[-1])
 
 
 def translate_and_compute_bleu(estimator, tokenizer_, bleu_source, bleu_ref):
@@ -167,11 +173,11 @@ def translate_and_compute_bleu(estimator, tokenizer_, bleu_source, bleu_ref):
     # translate into tmp file 
     translate.translate_file(
             estimator, tokenizer_, bleu_source, output_file=tmp_name,
-            print_all_translations=False)
+            print_all=False)
 
-    uncased_score = compute_bleu.bleu_wrapper(bleu_ref, tmp_filename, False)
-    cased_score = compute_bleu.bleu_wrapper(bleu_ref, tmp_filename, True)
-    os.remove(tmp_filename)
+    uncased_score = compute_bleu.bleu_wrapper(bleu_ref, tmp_name, False)
+    cased_score = compute_bleu.bleu_wrapper(bleu_ref, tmp_name, True)
+    os.remove(tmp_name)
     return uncased_score, cased_score
 
 
@@ -226,19 +232,20 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
         controler_.train_eval_iterations = INF
 
 
-    my_input_fn = lambda: dataset.train_input_fn(params)
+    train_input_fn = lambda: dataset.train_input_fn(params)
+    eval_input_fn = lambda: dataset.eval_input_fn(params)
     for i in range(controler_.train_eval_iterations):
         tf.logging.info('Iteration {}:'.format(i+1))
-         
+        
         # Start train 
-        estimator.train(input_fn=my_input_fn,
-                steps=controler_.single_iteration_eval_steps,
+        estimator.train(input_fn=train_input_fn,
+                steps=controler_.single_iteration_train_steps,
                 hooks=train_hooks)
 
         # Romove old graphs
-        check_graph_files(graphs_dir, 5)
+        # check_graph_files(model_dir, 5)
 
-        eval_results = estimator.evaluate(input_fn=dataset.eval_input_fn,
+        eval_results = estimator.evaluate(input_fn=eval_input_fn,
                 steps=controler_.single_iteration_eval_steps)
 
         tf.logging.info('Evalution results (iter {}/{})'.format(
@@ -253,6 +260,8 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
                     bleu_ref,
                     vocab_file)
 
+            # tf.logging.info('uncased_score:{}'.format(uncased_score))
+            # tf.logging.info('cased_score:{}'.format(cased_score))
             # Write actual bleu scores using summary writer
             global_step = get_global_step(estimator)
             summary = tf.Summary(value=[
@@ -267,6 +276,8 @@ def run_loop(estimator, params, controler_, train_hooks=None, bleu_source=None,
                 tf.logging.info('The BLEU score just passed the thresholds.')
                 writer.close()
                 break
+
+        
 
 
 
@@ -293,12 +304,11 @@ def construct_estimator(model_dir, num_gpus, params):
             model_dir=model_dir,
             params=params,
             config=tf.estimator.RunConfig(
-                train_distribute=distribution_strategy,
-                session_config=sess_config))
+                train_distribute=distribution_strategy))
 
 
 def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: str, 
-        export_dir: str, graphs_dir: str, batch_size, allow_ffn_pad: bool, bleu_source, bleu_ref, 
+        export_dir: str, batch_size, allow_ffn_pad: bool, bleu_source, bleu_ref, 
         hooks, stop_threshold, vocab_file, num_parallel_calls: int=4, 
         static_batch=False, use_synthetic_data=False):
     """Run the transformer train and evaluation.
@@ -321,6 +331,8 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
     """
     if params_set == 'base':
         params_ = params.BASE_PARAMS
+    elif params_set == 'big':
+        params_ = params.BIG_PARAMS
     else:
         params_ = params.TINY_PARAMS
 
@@ -344,14 +356,15 @@ def run_transformaer(num_gpus: int, params_set: str, data_dir: str, model_dir: s
             epoches_between_evals=params_['epoches_between_evals'], 
             default_train_epoches=DEFAULT_TRAIN_EPOCHES, 
             batch_size=params_['batch_size'],
-            max_length=params_['max_length'])
+            max_length=params_['max_length'],
+            eval_step=params_['eval_step'])
 
     params_['repeat_dataset'] = controler_manager.repeat_dataset
 
     # Create hooks
     train_hooks = hook_helper.get_train_hooks(
             hooks,
-            model_dir=graphs_dir,
+            model_dir=model_dir,
             tensors_to_log=TENSORS_TO_LOG,
             batch_size=controler_manager.batch_size,
             use_tpu=False)

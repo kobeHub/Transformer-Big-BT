@@ -11,16 +11,16 @@ BASE_PARAMS = defaultdict(
         lambda: None,  # default value is None
         
         # input params
-        default_batch_size=1,  # 512
+        default_batch_size=512,  # 512
         max_length=256,
 
         # model params
         initializer_gain=1.0,
         vocab_size=610390,  # //NOT FINAL
-        hidden_size=16,    # 512
-        num_hidden_layers=3,   # 6
+        hidden_size=256,    # 512
+        num_hidden_layers=6,   # 6
         num_heads=8,
-        filter_size=64,   # ffn layer dimension 2048
+        filter_size=1024,   # ffn layer dimension 2048
 
         # dropout value
         layers_postprocess_dropout=0.1,
@@ -32,8 +32,9 @@ BASE_PARAMS = defaultdict(
         learning_rate=2.0,
         learning_rate_deacy_rate=1.0,
         learning_rate_warmup_steps=16000,
-        train_steps=10000000,
-        steps_between_evals=10000,
+        train_steps=100000,
+        steps_between_evals=5000,
+        eval_step=25,
         train_epoches=None,
         epoches_between_evals=1,
         
@@ -48,6 +49,13 @@ BASE_PARAMS = defaultdict(
         beam_size=4,
         alpha=0.6,
         )
+
+BIG_PARAMS = BASE_PARAMS.copy()
+BIG_PARAMS.update(
+        vocab_size=1132998,
+        hidden_size=128,
+        )
+
 
 TINY_PARAMS = BASE_PARAMS.copy()
 TINY_PARAMS.update(
