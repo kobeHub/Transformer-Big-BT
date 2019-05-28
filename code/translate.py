@@ -93,9 +93,10 @@ def translate_file(estimator, tokenizer_, input_file, output_file=None,
                 f.write('{}\n'.format(translations[i]))
 
 
-def translate_sentence(estimator, tokenizer_, txt):
-    encoded_txt = _encode_and_add_eos(txt, tokenizer_)
 
+
+def translate_text(estimator, tokenizer_, txt):
+    encoded_txt = _encode_and_add_eos(txt, tokenizer_)
     def input_fn():
         ds = tf.data.Dataset.from_tensors(encoded_txt)
         ds = ds.batch(_DECODE_BATCH_SIZE)
@@ -104,23 +105,21 @@ def translate_sentence(estimator, tokenizer_, txt):
     predictions = estimator.predict(input_fn)
     translation = next(predictions)['outputs']
     translation = _trim_and_decode(translation, tokenizer_)
-    return translation
-
-
-def translate_text(estimator, tokenizer_, txt):
-    translation = translate_sentence(estimator, tokenizer_, txt)
     tf.logging.info('Translating:\n\tsource: {}\n\ttarget: {}'.format(
         txt, translation))
 
 
 def translate_interactive(estimator, tokenizer_):
     """Load the model and translate interactively until meet the end symbol"""
+    
+    predictor = ContinuePredict(estimator, continue_input_fn)
     while True:
-        tf.logginf.info("Enter the English sentence end with ENTER.")
+        tf.logging.info("Enter the English sentence end with ENTER.")
         raw_text = input().strip()
         if raw_text == r'\q':
+            predictor.close()
             break
-        target = translate_sentence(estimator, tokenizer_, raw_text)
+        target = predictor.predict(raw_text)
         tf.logging.info('\t{}'.format(target))
 
 
@@ -181,4 +180,34 @@ def translate_main(interactive, text: str=None, inputs_file: str=None, output_fi
 
 
 
+################################################################
+class ContinuePredict:
+    """Support the estimator to continue translation by loading the graph and args
+    one time."""
+    def __init__(self, estimator, input_fn):
+        self.estimator = estimator
+        self.closed = False
+        self.input_fn = input_fn
+
+    def _create_generator(self):
+        while not self.closed:
+            yield self.next_source
+
+    def predict(self, source_input):
+        """Run the predict on a new input raw text"""
+        self.next_source = source_input
+        translation = self.estimator.predict(
+                input_fn=self.input_fn(self._create_generator))
+        return translation
+
+    def close(self):
+        self.closed = True
+        
+
+def continue_input_fn(generator):
+    def _inner_input():
+        dataset = tf.data.Dataset.from_generator(generator)
+        dataset = dataset.batch(_DECODE_BATCH_SIZE)
+        return dataset
+    return _inner_input
 
