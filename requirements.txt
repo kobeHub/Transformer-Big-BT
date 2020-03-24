@@ -9,7 +9,7 @@ attrs==19.1.0
 aurman==2.19.1
 backcall==0.1.0
 bcrypt==3.1.6
-bleach==3.1.0
+bleach==3.1.2
 btrfsutil==1.1.0
 cached-property==1.5.1
 certifi==2019.3.9
